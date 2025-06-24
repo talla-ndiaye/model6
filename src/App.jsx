@@ -11,7 +11,6 @@ import Classes from './pages/admin/Classes';
 import Eleves from './pages/admin/Eleves';
 import EmploisDuTemps from './pages/admin/EmploisDuTemps';
 import Enseignants from './pages/admin/Enseignants';
-import GestionPresencesAdmin from './pages/admin/GestionPresences';
 import GestionUtilisateurs from './pages/admin/GestionUtilisateurs';
 import ImportEleves from './pages/admin/ImportEleves';
 import Matieres from './pages/admin/Matieres';
@@ -22,18 +21,15 @@ import TableauDeBord from './pages/admin/TableauDeBord';
 // Pages Enseignant
 import EmploiDuTempsEnseignant from './pages/enseignant/EmploiDuTemps';
 import GestionNotes from './pages/enseignant/GestionNotes';
-import GestionPresences from './pages/enseignant/GestionPresences';
 import MesClasses from './pages/enseignant/MesClasses';
 import TableauDeBordEnseignant from './pages/enseignant/TableauDeBord';
 
 // Pages Élève
 import EmploiDuTempsEleve from './pages/eleve/EmploiDuTemps';
 import NotesEleve from './pages/eleve/Notes';
-import PresencesEleve from './pages/eleve/Presences';
 
 // Pages Parent
 import MesEnfants from './pages/parent/MesEnfants';
-import PresencesEnfants from './pages/parent/PresencesEnfants';
 
 // Pages Comptable
 import Recus from './pages/comptable/Recus';
@@ -88,11 +84,6 @@ function App() {
                 <EmploisDuTemps />
               </ProtectedRoute>
             } />
-            <Route path="admin/presences" element={
-              <ProtectedRoute allowedRoles={['admin']}>
-                <GestionPresencesAdmin />
-              </ProtectedRoute>
-            } />
             <Route path="admin/notes-bulletins" element={
               <ProtectedRoute allowedRoles={['admin']}>
                 <NotesBulletins />
@@ -125,11 +116,6 @@ function App() {
                 <EmploiDuTempsEnseignant />
               </ProtectedRoute>
             } />
-            <Route path="enseignant/presences" element={
-              <ProtectedRoute allowedRoles={['enseignant']}>
-                <GestionPresences />
-              </ProtectedRoute>
-            } />
             <Route path="enseignant/gestion-notes" element={
               <ProtectedRoute allowedRoles={['enseignant']}>
                 <GestionNotes />
@@ -137,14 +123,14 @@ function App() {
             } />
 
             {/* Routes Élève */}
+            <Route path="eleve/tableau-de-bord" element={
+              <ProtectedRoute allowedRoles={['eleve']}>
+                <TableauDeBordEnseignant />
+              </ProtectedRoute>
+            } />
             <Route path="eleve/emploi-du-temps" element={
               <ProtectedRoute allowedRoles={['eleve']}>
                 <EmploiDuTempsEleve />
-              </ProtectedRoute>
-            } />
-            <Route path="eleve/presences" element={
-              <ProtectedRoute allowedRoles={['eleve']}>
-                <PresencesEleve />
               </ProtectedRoute>
             } />
             <Route path="eleve/notes" element={
@@ -154,18 +140,23 @@ function App() {
             } />
 
             {/* Routes Parent */}
+            <Route path="parent/tableau-de-bord" element={
+              <ProtectedRoute allowedRoles={['parent']}>
+                <TableauDeBordEnseignant />
+              </ProtectedRoute>
+            } />
             <Route path="parent/mes-enfants" element={
               <ProtectedRoute allowedRoles={['parent']}>
                 <MesEnfants />
               </ProtectedRoute>
             } />
-            <Route path="parent/presences" element={
-              <ProtectedRoute allowedRoles={['parent']}>
-                <PresencesEnfants />
-              </ProtectedRoute>
-            } />
 
             {/* Routes Comptable */}
+            <Route path="comptable/tableau-de-bord" element={
+              <ProtectedRoute allowedRoles={['comptable']}>
+                <TableauDeBordEnseignant />
+              </ProtectedRoute>
+            } />
             <Route path="comptable/recus" element={
               <ProtectedRoute allowedRoles={['comptable']}>
                 <Recus />
