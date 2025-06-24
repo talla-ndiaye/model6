@@ -255,3 +255,52 @@ export const evenements = [
     type: 'Sortie'
   }
 ];
+
+// Nouvelles données pour les présences
+export const presences = [
+  {
+    id: 1,
+    eleveId: 1,
+    date: '2024-01-15',
+    statut: 'present', // present, absent, retard, renvoye
+    heureDebut: '08:00',
+    heureFin: '17:00',
+    enseignantId: 2,
+    classeId: 1,
+    justifie: true,
+    motifJustification: 'Rendez-vous médical',
+    commentaire: 'Arrivé à 9h30',
+    dateCreation: '2024-01-15T08:00:00',
+    dateModification: '2024-01-15T10:00:00'
+  },
+  {
+    id: 2,
+    eleveId: 2,
+    date: '2024-01-15',
+    statut: 'absent',
+    heureDebut: '08:00',
+    heureFin: '17:00',
+    enseignantId: 2,
+    classeId: 2,
+    justifie: false,
+    motifJustification: '',
+    commentaire: 'Absence non justifiée',
+    dateCreation: '2024-01-15T08:00:00',
+    dateModification: '2024-01-15T08:00:00'
+  },
+  {
+    id: 3,
+    eleveId: 3,
+    date: '2024-01-15',
+    statut: 'retard',
+    heureDebut: '08:00',
+    heureFin: '17:00',
+    enseignantId: 2,
+    classeId: 1,
+    justifie: true,
+    motifJustification: 'Transport en retard',
+    commentaire: 'Arrivé à 8h15',
+    dateCreation: '2024-01-15T08:15:00',
+    dateModification: '2024-01-15T08:15:00'
+  }
+];

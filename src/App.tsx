@@ -1,36 +1,39 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { Navigate, Route, BrowserRouter as Router, Routes } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
-import ProtectedRoute from './routes/ProtectedRoute';
 import DashboardLayout from './layouts/DashboardLayout';
+import ProtectedRoute from './routes/ProtectedRoute';
 
 // Pages publiques
 import Connexion from './pages/Connexion';
 
 // Pages Admin
-import TableauDeBord from './pages/admin/TableauDeBord';
-import GestionUtilisateurs from './pages/admin/GestionUtilisateurs';
-import Eleves from './pages/admin/Eleves';
-import Enseignants from './pages/admin/Enseignants';
 import Classes from './pages/admin/Classes';
-import Matieres from './pages/admin/Matieres';
+import Eleves from './pages/admin/Eleves';
 import EmploisDuTemps from './pages/admin/EmploisDuTemps';
+import Enseignants from './pages/admin/Enseignants';
+import GestionPresencesAdmin from './pages/admin/GestionPresences';
+import GestionUtilisateurs from './pages/admin/GestionUtilisateurs';
+import ImportEleves from './pages/admin/ImportEleves';
+import Matieres from './pages/admin/Matieres';
 import NotesBulletins from './pages/admin/NotesBulletins';
 import Paiements from './pages/admin/Paiements';
-import ImportEleves from './pages/admin/ImportEleves';
+import TableauDeBord from './pages/admin/TableauDeBord';
 
 // Pages Enseignant
-import TableauDeBordEnseignant from './pages/enseignant/TableauDeBord';
-import MesClasses from './pages/enseignant/MesClasses';
 import EmploiDuTempsEnseignant from './pages/enseignant/EmploiDuTemps';
 import GestionNotes from './pages/enseignant/GestionNotes';
+import GestionPresences from './pages/enseignant/GestionPresences';
+import MesClasses from './pages/enseignant/MesClasses';
+import TableauDeBordEnseignant from './pages/enseignant/TableauDeBord';
 
 // Pages Élève
 import EmploiDuTempsEleve from './pages/eleve/EmploiDuTemps';
 import NotesEleve from './pages/eleve/Notes';
+import PresencesEleve from './pages/eleve/Presences';
 
 // Pages Parent
 import MesEnfants from './pages/parent/MesEnfants';
+import PresencesEnfants from './pages/parent/PresencesEnfants';
 
 // Pages Comptable
 import Recus from './pages/comptable/Recus';
@@ -85,6 +88,11 @@ function App() {
                 <EmploisDuTemps />
               </ProtectedRoute>
             } />
+            <Route path="admin/presences" element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <GestionPresencesAdmin />
+              </ProtectedRoute>
+            } />
             <Route path="admin/notes-bulletins" element={
               <ProtectedRoute allowedRoles={['admin']}>
                 <NotesBulletins />
@@ -117,6 +125,11 @@ function App() {
                 <EmploiDuTempsEnseignant />
               </ProtectedRoute>
             } />
+            <Route path="enseignant/presences" element={
+              <ProtectedRoute allowedRoles={['enseignant']}>
+                <GestionPresences />
+              </ProtectedRoute>
+            } />
             <Route path="enseignant/gestion-notes" element={
               <ProtectedRoute allowedRoles={['enseignant']}>
                 <GestionNotes />
@@ -129,6 +142,11 @@ function App() {
                 <EmploiDuTempsEleve />
               </ProtectedRoute>
             } />
+            <Route path="eleve/presences" element={
+              <ProtectedRoute allowedRoles={['eleve']}>
+                <PresencesEleve />
+              </ProtectedRoute>
+            } />
             <Route path="eleve/notes" element={
               <ProtectedRoute allowedRoles={['eleve']}>
                 <NotesEleve />
@@ -139,6 +157,11 @@ function App() {
             <Route path="parent/mes-enfants" element={
               <ProtectedRoute allowedRoles={['parent']}>
                 <MesEnfants />
+              </ProtectedRoute>
+            } />
+            <Route path="parent/presences" element={
+              <ProtectedRoute allowedRoles={['parent']}>
+                <PresencesEnfants />
               </ProtectedRoute>
             } />
 

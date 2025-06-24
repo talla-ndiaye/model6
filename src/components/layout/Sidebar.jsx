@@ -1,20 +1,18 @@
-import React from 'react';
-import { NavLink } from 'react-router-dom';
-import { 
-  LayoutDashboard, 
-  Users, 
-  GraduationCap, 
-  BookOpen, 
+import {
+  BookOpen,
   Calendar,
-  FileText,
   CreditCard,
+  FileBarChart,
+  FileText,
+  GraduationCap,
+  LayoutDashboard,
+  Receipt,
   Upload,
   UserCheck,
-  Clock,
-  FileBarChart,
-  Receipt,
+  Users,
   X
 } from 'lucide-react';
+import { NavLink } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
 const Sidebar = ({ isOpen, onClose }) => {
