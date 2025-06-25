@@ -34,6 +34,7 @@ import MesEnfants from './pages/parent/MesEnfants';
 // Pages Comptable
 import GestionPresencesAdmin from './pages/admin/GestionPresences';
 import Recus from './pages/comptable/Recus';
+import PresencesEleve from './pages/eleve/Presences';
 import GestionPresences from './pages/enseignant/GestionPresences';
 import PresencesEnfants from './pages/parent/PresencesEnfants';
 
@@ -149,6 +150,11 @@ function App() {
             <Route path="eleve/notes" element={
               <ProtectedRoute allowedRoles={['eleve']}>
                 <NotesEleve />
+              </ProtectedRoute>
+            } />
+            <Route path="eleve/presences" element={
+              <ProtectedRoute allowedRoles={['eleve']}>
+                <PresencesEleve />
               </ProtectedRoute>
             } />
 

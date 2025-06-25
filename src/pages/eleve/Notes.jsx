@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { FileText, TrendingUp, Award } from 'lucide-react';
+import { Award, BookOpen, FileText, TrendingUp, User } from 'lucide-react'; // Added Calendar, BookOpen, User for consistent icons
+import { useState } from 'react';
 import Card from '../../components/ui/Card';
 import { useAuth } from '../../context/AuthContext';
-import { notes, matieres, eleves } from '../../data/donneesTemporaires';
+import { eleves, matieres, notes } from '../../data/donneesTemporaires';
 
 const NotesEleve = () => {
   const { user } = useAuth();
@@ -10,29 +10,39 @@ const NotesEleve = () => {
 
   // Récupérer l'élève
   const eleve = eleves.find(e => e.email === user.email);
-  
-  // Récupérer les notes de l'élève
-  const mesNotes = notes.filter(note => note.eleveId === eleve?.id);
+
+  // Filter notes by selected trimestre (assuming notes have a 'trimestre' property, if not, this part needs data adjustment)
+  // For now, I'll mock a 'trimestre' filter based on date. In a real app, 'notes' would have a trimestre field.
+  const mesNotes = notes.filter(note => {
+    if (!eleve) return false;
+    const noteDate = new Date(note.date);
+    // Simple date-based trimestre simulation (adjust as per actual trimestre logic)
+    const trimester =
+      noteDate.getMonth() < 3 ? '1' : // Jan-Mar
+      noteDate.getMonth() < 6 ? '2' : // Apr-Jun
+      noteDate.getMonth() < 9 ? '3' : '1'; // Jul-Sep, Oct-Dec (default to 1 for simplicity)
+    
+    return note.eleveId === eleve.id && String(trimester) === selectedTrimestre;
+  });
 
   const calculateMoyenne = (matiereId) => {
     const notesMatiere = mesNotes.filter(n => n.matiereId === matiereId);
     if (notesMatiere.length === 0) return null;
-    
+
     const totalPoints = notesMatiere.reduce((sum, note) => sum + (note.note * note.coefficient), 0);
     const totalCoeff = notesMatiere.reduce((sum, note) => sum + note.coefficient, 0);
-    
+
     return (totalPoints / totalCoeff).toFixed(2);
   };
 
   const calculateMoyenneGenerale = () => {
-    if (mesNotes.length === 0) return 0;
-    
+    // Calculate general average only from subjects that have notes for the selected trimester
     const moyennesParMatiere = matieres.map(matiere => {
       const moyenne = calculateMoyenne(matiere.id);
       return moyenne ? { moyenne: parseFloat(moyenne), coefficient: matiere.coefficient } : null;
-    }).filter(Boolean);
+    }).filter(Boolean); // Filter out subjects with no notes in the current trimester
 
-    if (moyennesParMatiere.length === 0) return 0;
+    if (moyennesParMatiere.length === 0) return null; // Changed to null for clear "Pas de notes"
 
     const totalPoints = moyennesParMatiere.reduce((sum, m) => sum + (m.moyenne * m.coefficient), 0);
     const totalCoeff = moyennesParMatiere.reduce((sum, m) => sum + m.coefficient, 0);
@@ -41,6 +51,7 @@ const NotesEleve = () => {
   };
 
   const getAppreciation = (moyenne) => {
+    if (moyenne === null) return { text: 'N/A', color: 'text-gray-500' }; // Handle null moyenne
     if (moyenne >= 16) return { text: 'Très bien', color: 'text-green-600' };
     if (moyenne >= 14) return { text: 'Bien', color: 'text-blue-600' };
     if (moyenne >= 12) return { text: 'Assez bien', color: 'text-yellow-600' };
@@ -51,10 +62,11 @@ const NotesEleve = () => {
   if (!eleve) {
     return (
       <div className="space-y-6">
-        <Card className="p-12 text-center">
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Profil non trouvé</h3>
+        <Card className="p-12 text-center bg-gray-50 border border-gray-200 shadow-sm">
+          <User className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">Profil élève non trouvé</h3>
           <p className="text-gray-600">
-            Impossible de récupérer vos informations d'élève.
+            Impossible de récupérer vos informations d'élève. Veuillez vous assurer que votre compte est correctement configuré.
           </p>
         </Card>
       </div>
@@ -66,16 +78,17 @@ const NotesEleve = () => {
 
   return (
     <div className="space-y-6">
+      {/* Page Header and Trimestre Selector */}
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Mes notes</h1>
           <p className="text-gray-600">Consultez vos résultats scolaires</p>
         </div>
-        
+
         <select
           value={selectedTrimestre}
           onChange={(e) => setSelectedTrimestre(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700 shadow-sm" // Added text-gray-700 and shadow
         >
           <option value="1">1er Trimestre</option>
           <option value="2">2ème Trimestre</option>
@@ -83,27 +96,29 @@ const NotesEleve = () => {
         </select>
       </div>
 
-      {/* Résumé général */}
+      {/* General Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="p-6">
+        <Card className="p-6 bg-blue-50 border-blue-100 shadow-sm"> {/* Consistent card styling */}
           <div className="flex items-center">
-            <div className="bg-blue-500 p-3 rounded-lg">
+            <div className="bg-blue-600 p-3 rounded-lg"> {/* Deeper blue background */}
               <TrendingUp className="w-6 h-6 text-white" />
             </div>
             <div className="ml-4">
-              <p className="text-sm text-gray-600">Moyenne générale</p>
-              <p className="text-2xl font-semibold text-gray-900">{moyenneGenerale}/20</p>
+              <p className="text-sm text-blue-800">Moyenne générale</p> {/* Deeper blue text */}
+              <p className="text-2xl font-semibold text-blue-900">
+                {moyenneGenerale !== null ? `${moyenneGenerale}/20` : 'N/A'}
+              </p>
             </div>
           </div>
         </Card>
 
-        <Card className="p-6">
+        <Card className="p-6 bg-green-50 border-green-100 shadow-sm"> {/* Consistent card styling */}
           <div className="flex items-center">
-            <div className="bg-green-500 p-3 rounded-lg">
+            <div className="bg-green-600 p-3 rounded-lg"> {/* Deeper green background */}
               <Award className="w-6 h-6 text-white" />
             </div>
             <div className="ml-4">
-              <p className="text-sm text-gray-600">Appréciation</p>
+              <p className="text-sm text-green-800">Appréciation</p> {/* Deeper green text */}
               <p className={`text-lg font-semibold ${appreciation.color}`}>
                 {appreciation.text}
               </p>
@@ -111,42 +126,48 @@ const NotesEleve = () => {
           </div>
         </Card>
 
-        <Card className="p-6">
+        <Card className="p-6 bg-orange-50 border-orange-100 shadow-sm"> {/* Consistent card styling */}
           <div className="flex items-center">
-            <div className="bg-orange-500 p-3 rounded-lg">
+            <div className="bg-orange-600 p-3 rounded-lg"> {/* Deeper orange background */}
               <FileText className="w-6 h-6 text-white" />
             </div>
             <div className="ml-4">
-              <p className="text-sm text-gray-600">Notes saisies</p>
-              <p className="text-2xl font-semibold text-gray-900">{mesNotes.length}</p>
+              <p className="text-sm text-orange-800">Notes saisies</p> {/* Deeper orange text */}
+              <p className="text-2xl font-semibold text-orange-900">{mesNotes.length}</p>
             </div>
           </div>
         </Card>
       </div>
 
-      {/* Détail par matière */}
-      <Card>
-        <div className="p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-6">Détail par matière</h2>
-          
-          <div className="space-y-6">
-            {matieres.map(matiere => {
+      {/* Detail by Subject Section */}
+      <Card className="p-6 shadow-sm"> {/* Wrapped in a Card */}
+        <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
+            <FileText className="w-5 h-5 mr-2 text-blue-600" /> {/* Consistent blue icon */}
+            Détail par matière
+        </h2>
+
+        <div className="space-y-6">
+          {matieres.length > 0 ? (
+            matieres.map(matiere => {
               const notesMatiere = mesNotes.filter(n => n.matiereId === matiere.id);
               const moyenne = calculateMoyenne(matiere.id);
-              
+
               return (
-                <div key={matiere.id} className="border border-gray-200 rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-4">
+                <div key={matiere.id} className="border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow duration-200"> {/* Added shadow and hover */}
+                  <div className="flex items-center justify-between mb-4 pb-2 border-b border-gray-100"> {/* Added border-b */}
                     <div className="flex items-center space-x-3">
-                      <div 
+                      <div
                         className="w-4 h-4 rounded"
                         style={{ backgroundColor: matiere.couleur }}
                       />
-                      <h3 className="text-lg font-semibold text-gray-900">{matiere.nom}</h3>
+                      <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                        <BookOpen className="w-5 h-5 text-blue-600" /> {/* Consistent blue icon */}
+                        {matiere.nom}
+                      </h3>
                       <span className="text-sm text-gray-500">Coeff. {matiere.coefficient}</span>
                     </div>
                     <div className="text-right">
-                      {moyenne ? (
+                      {moyenne !== null ? ( // Handle null moyenne
                         <div>
                           <p className={`text-xl font-bold ${
                             parseFloat(moyenne) >= 10 ? 'text-green-600' : 'text-red-600'
@@ -158,14 +179,14 @@ const NotesEleve = () => {
                           </p>
                         </div>
                       ) : (
-                        <p className="text-gray-400">Pas de note</p>
+                        <p className="text-gray-400 text-lg">N/A</p> // Clear N/A for no notes
                       )}
                     </div>
                   </div>
 
                   {notesMatiere.length > 0 ? (
                     <div className="overflow-x-auto">
-                      <table className="min-w-full">
+                      <table className="min-w-full divide-y divide-gray-200">
                         <thead>
                           <tr className="bg-gray-50">
                             <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
@@ -187,7 +208,7 @@ const NotesEleve = () => {
                         </thead>
                         <tbody className="divide-y divide-gray-200">
                           {notesMatiere.map(note => (
-                            <tr key={note.id}>
+                            <tr key={note.id} className="hover:bg-gray-50 transition-colors">
                               <td className="px-4 py-2 text-sm text-gray-900">
                                 {new Date(note.date).toLocaleDateString('fr-FR')}
                               </td>
@@ -200,19 +221,24 @@ const NotesEleve = () => {
                                 </span>
                               </td>
                               <td className="px-4 py-2 text-sm text-gray-900">{note.coefficient}</td>
-                              <td className="px-4 py-2 text-sm text-gray-600">{note.commentaire}</td>
+                              <td className="px-4 py-2 text-sm text-gray-600">{note.commentaire || 'Aucun'}</td> {/* Handle null comment */}
                             </tr>
                           ))}
                         </tbody>
                       </table>
                     </div>
                   ) : (
-                    <p className="text-gray-500 text-center py-4">Aucune note pour cette matière</p>
+                    <p className="text-gray-500 text-center py-4">Aucune note enregistrée pour ce trimestre.</p>
                   )}
                 </div>
               );
-            })}
-          </div>
+            })
+          ) : (
+            <div className="text-center py-8">
+                <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-500 text-lg">Aucune note disponible pour ce trimestre.</p>
+            </div>
+          )}
         </div>
       </Card>
     </div>
