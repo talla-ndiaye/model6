@@ -35,6 +35,7 @@ import MesEnfants from './pages/parent/MesEnfants';
 import GestionPresencesAdmin from './pages/admin/GestionPresences';
 import Recus from './pages/comptable/Recus';
 import GestionPresences from './pages/enseignant/GestionPresences';
+import PresencesEnfants from './pages/parent/PresencesEnfants';
 
 function App() {
   return (
@@ -160,6 +161,12 @@ function App() {
             <Route path="parent/mes-enfants" element={
               <ProtectedRoute allowedRoles={['parent']}>
                 <MesEnfants />
+              </ProtectedRoute>
+            } />
+
+            <Route path="parent/presences" element={
+              <ProtectedRoute allowedRoles={['parent']}>
+                <PresencesEnfants />
               </ProtectedRoute>
             } />
 

@@ -53,7 +53,8 @@ const Sidebar = ({ isOpen, onClose }) => {
 
       case 'parent':
         return [
-          { icon: GraduationCap, label: 'Mes enfants', path: '/parent/mes-enfants' }
+          { icon: GraduationCap, label: 'Mes enfants', path: '/parent/mes-enfants' },
+          { icon: UserCheck, label: 'Abscenes-Retards-Renvoies', path: '/parent/presences' }
         ];
 
       case 'comptable':
