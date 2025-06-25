@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { Plus, Edit, Trash2, Users } from 'lucide-react';
-import Card from '../../components/ui/Card';
+import { Edit, Plus, Search, Trash2, Users } from 'lucide-react'; // Added Search icon
+import { useState } from 'react';
 import Button from '../../components/ui/Button';
+import Card from '../../components/ui/Card';
 import InputField from '../../components/ui/InputField';
 import Modal from '../../components/ui/Modal';
 import Table from '../../components/ui/Table';
@@ -11,6 +11,8 @@ const Classes = () => {
   const [classrooms, setClassrooms] = useState(classes);
   const [showModal, setShowModal] = useState(false);
   const [editingClass, setEditingClass] = useState(null);
+  const [searchTerm, setSearchTerm] = useState(''); // New state for search term
+  const [filterNiveau, setFilterNiveau] = useState(''); // New state for niveau filter
   const [formData, setFormData] = useState({
     nom: '',
     niveau: '',
@@ -21,6 +23,14 @@ const Classes = () => {
 
   const niveaux = ['6ème', '5ème', '4ème', '3ème'];
 
+  // Filtered classrooms based on search and niveau
+  const filteredClassrooms = classrooms.filter(classroom => {
+    const matchesSearch = classroom.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          classroom.salle.toLowerCase().includes(searchTerm.toLowerCase()); // Search by name or room
+    const matchesNiveau = filterNiveau === '' || classroom.niveau === filterNiveau;
+    return matchesSearch && matchesNiveau;
+  });
+
   const getEnseignantName = (enseignantId) => {
     const enseignant = enseignants.find(e => e.id === enseignantId);
     return enseignant ? `${enseignant.prenom} ${enseignant.nom}` : 'Non assigné';
@@ -28,7 +38,7 @@ const Classes = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     const classData = {
       ...formData,
       enseignantPrincipal: parseInt(formData.enseignantPrincipal),
@@ -37,18 +47,18 @@ const Classes = () => {
 
     if (editingClass) {
       console.log('Modification classe:', { ...classData, id: editingClass.id });
-      setClassrooms(classrooms.map(classroom => 
+      setClassrooms(classrooms.map(classroom =>
         classroom.id === editingClass.id ? { ...classData, id: classroom.id } : classroom
       ));
     } else {
-      const newClass = { 
-        ...classData, 
+      const newClass = {
+        ...classData,
         id: Math.max(...classrooms.map(c => c.id)) + 1
       };
       console.log('Ajout classe:', newClass);
       setClassrooms([...classrooms, newClass]);
     }
-    
+
     resetForm();
   };
 
@@ -141,7 +151,33 @@ const Classes = () => {
       </div>
 
       <Card>
-        <Table columns={columns} data={classrooms} />
+        {/* Search and Filter Bar - NEW */}
+        <div className="flex flex-col sm:flex-row gap-4 mb-6">
+          <div className="flex-1">
+            <InputField
+              placeholder="Rechercher par nom de classe ou salle..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              icon={Search}
+            />
+          </div>
+          <div className="sm:w-48">
+            <select
+              value={filterNiveau}
+              onChange={(e) => setFilterNiveau(e.target.value)}
+              className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-700"
+            >
+              <option value="">Tous les niveaux</option>
+              {niveaux.map(niveau => (
+                <option key={niveau} value={niveau}>
+                  {niveau}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <Table columns={columns} data={filteredClassrooms} /> {/* Use filtered data */}
       </Card>
 
       <Modal
@@ -166,7 +202,7 @@ const Classes = () => {
             <select
               value={formData.niveau}
               onChange={(e) => setFormData({...formData, niveau: e.target.value})}
-              className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-700"
               required
             >
               <option value="">Sélectionner un niveau</option>
@@ -185,7 +221,7 @@ const Classes = () => {
             <select
               value={formData.enseignantPrincipal}
               onChange={(e) => setFormData({...formData, enseignantPrincipal: e.target.value})}
-              className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-700"
             >
               <option value="">Aucun enseignant assigné</option>
               {enseignants.map(enseignant => (

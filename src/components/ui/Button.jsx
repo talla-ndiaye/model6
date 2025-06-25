@@ -1,4 +1,3 @@
-import React from 'react';
 
 const Button = ({ 
   children, 
@@ -15,10 +14,10 @@ const Button = ({
   const baseClasses = 'inline-flex items-center justify-center font-medium rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed';
   
   const variants = {
-    primary: 'bg-soleil-500 hover:bg-soleil-600 text-white focus:ring-soleil-500 shadow-md hover:shadow-lg',
-    secondary: 'bg-fleuve-500 hover:bg-fleuve-600 text-white focus:ring-fleuve-500 shadow-md hover:shadow-lg',
+    primary: 'bg-fleuve-500 hover:bg-fleuve-600 text-white focus:ring-fleuve-500 shadow-md hover:shadow-lg',
+    secondary: 'bg-soleil-500 hover:bg-soleil-600 text-white focus:ring-soleil-500 shadow-md hover:shadow-lg',
     success: 'bg-acacia-500 hover:bg-acacia-600 text-white focus:ring-acacia-500 shadow-md hover:shadow-lg',
-    danger: 'bg-terre-500 hover:bg-terre-600 text-white focus:ring-terre-500 shadow-md hover:shadow-lg',
+    danger: 'bg-red-600 hover:bg-red-600 text-white focus:ring-red-500 shadow-md hover:shadow-lg',
     warning: 'bg-soleil-400 hover:bg-soleil-500 text-white focus:ring-soleil-400 shadow-md hover:shadow-lg',
     outline: 'border-2 border-gray-300 bg-white hover:bg-gray-50 text-gray-700 focus:ring-fleuve-500 hover:border-gray-400',
     ghost: 'bg-transparent hover:bg-gray-100 text-gray-700 focus:ring-fleuve-500',

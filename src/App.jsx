@@ -32,6 +32,7 @@ import NotesEleve from './pages/eleve/Notes';
 import MesEnfants from './pages/parent/MesEnfants';
 
 // Pages Comptable
+import GestionPresencesAdmin from './pages/admin/GestionPresences';
 import Recus from './pages/comptable/Recus';
 
 function App() {
@@ -97,6 +98,11 @@ function App() {
             <Route path="admin/import-eleves" element={
               <ProtectedRoute allowedRoles={['admin']}>
                 <ImportEleves />
+              </ProtectedRoute>
+            } />
+            <Route path="admin/presences" element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <GestionPresencesAdmin />
               </ProtectedRoute>
             } />
 

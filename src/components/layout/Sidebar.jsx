@@ -22,42 +22,43 @@ const Sidebar = ({ isOpen, onClose }) => {
     switch (user?.role) {
       case 'admin':
         return [
-          { icon: LayoutDashboard, label: 'Tableau de bord', path: '/admin/tableau-de-bord', color: 'text-soleil-500' },
-          { icon: Users, label: 'Gestion utilisateurs', path: '/admin/gestion-utilisateurs', color: 'text-fleuve-500' },
-          { icon: GraduationCap, label: 'Élèves', path: '/admin/eleves', color: 'text-acacia-500' },
-          { icon: UserCheck, label: 'Enseignants', path: '/admin/enseignants', color: 'text-terre-500' },
-          { icon: BookOpen, label: 'Classes', path: '/admin/classes', color: 'text-soleil-500' },
-          { icon: FileText, label: 'Matières', path: '/admin/matieres', color: 'text-fleuve-500' },
-          { icon: Calendar, label: 'Emplois du temps', path: '/admin/emplois-du-temps', color: 'text-acacia-500' },
-          { icon: FileBarChart, label: 'Notes & Bulletins', path: '/admin/notes-bulletins', color: 'text-terre-500' },
-          { icon: CreditCard, label: 'Paiements', path: '/admin/paiements', color: 'text-soleil-500' },
-          { icon: Upload, label: 'Import élèves', path: '/admin/import-eleves', color: 'text-fleuve-500' }
+          { icon: LayoutDashboard, label: 'Tableau de bord', path: '/admin/tableau-de-bord' },
+          { icon: Users, label: 'Gestion utilisateurs', path: '/admin/gestion-utilisateurs' },
+          { icon: GraduationCap, label: 'Élèves', path: '/admin/eleves' },
+          { icon: UserCheck, label: 'Enseignants', path: '/admin/enseignants' },
+          { icon: BookOpen, label: 'Classes', path: '/admin/classes' },
+          { icon: FileText, label: 'Matières', path: '/admin/matieres' },
+          { icon: Users, label: 'Gestions Présences', path: '/admin/presences' },
+          { icon: Calendar, label: 'Emplois du temps', path: '/admin/emplois-du-temps' },
+          { icon: FileBarChart, label: 'Notes & Bulletins', path: '/admin/notes-bulletins' },
+          { icon: CreditCard, label: 'Paiements', path: '/admin/paiements' },
+          { icon: Upload, label: 'Import élèves', path: '/admin/import-eleves' }
         ];
-      
+
       case 'enseignant':
         return [
-          { icon: LayoutDashboard, label: 'Tableau de bord', path: '/enseignant/tableau-de-bord', color: 'text-soleil-500' },
-          { icon: BookOpen, label: 'Mes classes', path: '/enseignant/mes-classes', color: 'text-fleuve-500' },
-          { icon: Calendar, label: 'Emploi du temps', path: '/enseignant/emploi-du-temps', color: 'text-acacia-500' },
-          { icon: FileBarChart, label: 'Gestion notes', path: '/enseignant/gestion-notes', color: 'text-terre-500' }
+          { icon: LayoutDashboard, label: 'Tableau de bord', path: '/enseignant/tableau-de-bord' },
+          { icon: BookOpen, label: 'Mes classes', path: '/enseignant/mes-classes' },
+          { icon: Calendar, label: 'Emploi du temps', path: '/enseignant/emploi-du-temps' },
+          { icon: FileBarChart, label: 'Gestion notes', path: '/enseignant/gestion-notes' }
         ];
-      
+
       case 'eleve':
         return [
-          { icon: Calendar, label: 'Emploi du temps', path: '/eleve/emploi-du-temps', color: 'text-soleil-500' },
-          { icon: FileBarChart, label: 'Mes notes', path: '/eleve/notes', color: 'text-fleuve-500' }
+          { icon: Calendar, label: 'Emploi du temps', path: '/eleve/emploi-du-temps' },
+          { icon: FileBarChart, label: 'Mes notes', path: '/eleve/notes' }
         ];
-      
+
       case 'parent':
         return [
-          { icon: GraduationCap, label: 'Mes enfants', path: '/parent/mes-enfants', color: 'text-acacia-500' }
+          { icon: GraduationCap, label: 'Mes enfants', path: '/parent/mes-enfants' }
         ];
-      
+
       case 'comptable':
         return [
-          { icon: Receipt, label: 'Reçus', path: '/comptable/recus', color: 'text-terre-500' }
+          { icon: Receipt, label: 'Reçus', path: '/comptable/recus' }
         ];
-      
+
       default:
         return [];
     }
@@ -67,10 +68,10 @@ const Sidebar = ({ isOpen, onClose }) => {
 
   const getRoleGradient = (role) => {
     const gradients = {
-      admin: 'from-terre-500 to-terre-600',
-      enseignant: 'from-fleuve-500 to-fleuve-600',
-      parent: 'from-acacia-500 to-acacia-600',
-      eleve: 'from-soleil-500 to-soleil-600',
+      admin: 'from-blue-500 to-blue-600', // Changed from fleuve to blue
+      enseignant: 'from-blue-500 to-blue-600', // Changed from fleuve to blue
+      parent: 'from-blue-500 to-blue-600', // Changed from fleuve to blue
+      eleve: 'from-blue-500 to-blue-600', // Changed from fleuve to blue
       comptable: 'from-gray-500 to-gray-600'
     };
     return gradients[role] || 'from-gray-500 to-gray-600';
@@ -80,12 +81,12 @@ const Sidebar = ({ isOpen, onClose }) => {
     <>
       {/* Overlay mobile */}
       {isOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
           onClick={onClose}
         />
       )}
-      
+
       {/* Sidebar */}
       <aside className={`
         fixed lg:static inset-y-0 left-0 z-50 w-64 sm:w-72 lg:w-64 xl:w-72
@@ -101,11 +102,11 @@ const Sidebar = ({ isOpen, onClose }) => {
                 <GraduationCap className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h2 className="font-bold text-gray-900">EcoleManager</h2>
+                <h2 className="font-bold text-gray-900">CCHT</h2>
                 <p className="text-xs text-gray-500 capitalize">{user?.role}</p>
               </div>
             </div>
-            
+
             <button
               onClick={onClose}
               className="lg:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
@@ -124,17 +125,17 @@ const Sidebar = ({ isOpen, onClose }) => {
                   to={item.path}
                   onClick={onClose}
                   className={({ isActive }) =>
-                    `flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 group ${
-                      isActive 
-                        ? 'bg-gradient-to-r from-soleil-50 to-fleuve-50 text-fleuve-700 shadow-sm border border-fleuve-100' 
-                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                    `flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      isActive
+                        ? 'bg-blue-50 text-blue-700 shadow-sm border-r-2 border-blue-500' // Consistent blue active state
+                        : 'text-gray-700 hover:bg-gray-100'
                     }`
                   }
                 >
                   {({ isActive }) => (
                     <>
                       <item.icon className={`w-5 h-5 transition-colors ${
-                        isActive ? 'text-fleuve-600' : `${item.color} group-hover:text-gray-700`
+                        isActive ? 'text-blue-600' : 'text-gray-500 group-hover:text-blue-700' // Neutral gray for inactive, blue for active/hover
                       }`} />
                       <span className="text-sm font-medium">{item.label}</span>
                     </>
@@ -146,10 +147,10 @@ const Sidebar = ({ isOpen, onClose }) => {
         </nav>
 
         {/* Footer sidebar */}
-        <div className="p-4 sm:p-6 border-t border-gray-200">
-          <div className="bg-gradient-to-r from-soleil-50 to-fleuve-50 rounded-xl p-4 border border-soleil-100">
+        <div className="p-4 sm:p-6 border-t border-blue-100"> {/* Consistent blue border */}
+          <div className="bg-gradient-to-r from-blue-50 to-blue-400 rounded-xl p-4 border border-blue-100"> {/* Consistent blue gradient and border */}
             <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-gradient-to-br from-soleil-400 to-fleuve-500 rounded-lg flex items-center justify-center">
+              <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center"> {/* Consistent blue background */}
                 <span className="text-white text-sm font-bold">
                   {user?.prenom?.charAt(0)}{user?.nom?.charAt(0)}
                 </span>

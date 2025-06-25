@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
-import { Plus, Search, Edit, Trash2, Eye } from 'lucide-react';
-import Card from '../../components/ui/Card';
+import { BookOpen, CalendarDays, Edit, Eye, Home, Mail, Phone, Plus, Search, Trash2 } from 'lucide-react'; // Added more icons
+import { useState } from 'react';
 import Button from '../../components/ui/Button';
+import Card from '../../components/ui/Card';
 import InputField from '../../components/ui/InputField';
 import Modal from '../../components/ui/Modal';
 import Table from '../../components/ui/Table';
-import { eleves, classes } from '../../data/donneesTemporaires';
+import { classes, eleves } from '../../data/donneesTemporaires';
 
 const Eleves = () => {
   const [students, setStudents] = useState(eleves);
@@ -27,7 +27,7 @@ const Eleves = () => {
 
   const filteredStudents = students.filter(student => {
     const matchesSearch = student.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         student.prenom.toLowerCase().includes(searchTerm.toLowerCase());
+                          student.prenom.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesClasse = filterClasse === '' || student.classeId.toString() === filterClasse;
     return matchesSearch && matchesClasse;
   });
@@ -39,7 +39,7 @@ const Eleves = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     const studentData = {
       ...formData,
       classeId: parseInt(formData.classeId)
@@ -47,19 +47,19 @@ const Eleves = () => {
 
     if (editingStudent) {
       console.log('Modification élève:', { ...studentData, id: editingStudent.id });
-      setStudents(students.map(student => 
+      setStudents(students.map(student =>
         student.id === editingStudent.id ? { ...studentData, id: student.id, parentIds: student.parentIds } : student
       ));
     } else {
-      const newStudent = { 
-        ...studentData, 
+      const newStudent = {
+        ...studentData,
         id: Math.max(...students.map(s => s.id)) + 1,
         parentIds: []
       };
       console.log('Ajout élève:', newStudent);
       setStudents([...students, newStudent]);
     }
-    
+
     resetForm();
   };
 
@@ -74,7 +74,8 @@ const Eleves = () => {
       email: student.email,
       adresse: student.adresse
     });
-    setShowModal(true);
+    setShowDetailModal(false); // Close detail modal if open
+    setShowModal(true); // Open edit modal
   };
 
   const handleDetail = (student) => {
@@ -86,6 +87,7 @@ const Eleves = () => {
     if (window.confirm(`Êtes-vous sûr de vouloir supprimer ${student.prenom} ${student.nom} ?`)) {
       console.log('Suppression élève:', student);
       setStudents(students.filter(s => s.id !== student.id));
+      setShowDetailModal(false); // Close detail modal after deletion
     }
   };
 
@@ -154,6 +156,16 @@ const Eleves = () => {
     }
   ];
 
+  const DetailRow = ({ icon: Icon, label, value }) => (
+    <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg border border-gray-100">
+      {Icon && <Icon className="w-5 h-5 text-blue-500 flex-shrink-0" />}
+      <div>
+        <p className="text-xs font-medium text-gray-500">{label}</p>
+        <p className="text-sm font-semibold text-gray-800">{value}</p>
+      </div>
+    </div>
+  );
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -173,13 +185,14 @@ const Eleves = () => {
               placeholder="Rechercher par nom ou prénom..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
+              icon={Search} // Added search icon to input
             />
           </div>
           <div className="sm:w-48">
             <select
               value={filterClasse}
               onChange={(e) => setFilterClasse(e.target.value)}
-              className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-700" // Added text color
             >
               <option value="">Toutes les classes</option>
               {classes.map(classe => (
@@ -235,7 +248,7 @@ const Eleves = () => {
             <select
               value={formData.classeId}
               onChange={(e) => setFormData({...formData, classeId: e.target.value})}
-              className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-700"
               required
             >
               <option value="">Sélectionner une classe</option>
@@ -279,7 +292,7 @@ const Eleves = () => {
         </form>
       </Modal>
 
-      {/* Modal de détails */}
+      {/* Modal de détails - Amélioré */}
       <Modal
         isOpen={showDetailModal}
         onClose={() => setShowDetailModal(false)}
@@ -287,43 +300,68 @@ const Eleves = () => {
         size="md"
       >
         {selectedStudent && (
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Prénom</label>
-                <p className="mt-1 text-sm text-gray-900">{selectedStudent.prenom}</p>
+          <div className="space-y-6"> {/* Increased overall spacing */}
+            {/* Header section with Name and Avatar */}
+            <div className="flex items-center space-x-4 pb-4 border-b border-gray-200">
+              <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-2xl font-bold uppercase">
+                {selectedStudent.prenom.charAt(0)}{selectedStudent.nom.charAt(0)}
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Nom</label>
-                <p className="mt-1 text-sm text-gray-900">{selectedStudent.nom}</p>
+                <h3 className="text-xl font-bold text-gray-900">
+                  {selectedStudent.prenom} {selectedStudent.nom}
+                </h3>
+                <p className="text-sm text-gray-500">{getClassName(selectedStudent.classeId)}</p>
               </div>
             </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Date de naissance</label>
-              <p className="mt-1 text-sm text-gray-900">
-                {new Date(selectedStudent.dateNaissance).toLocaleDateString('fr-FR')}
-              </p>
+
+            {/* Personal Information Section */}
+            <div className="space-y-4">
+              <h4 className="text-lg font-semibold text-gray-800">Informations Personnelles</h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <DetailRow
+                  icon={CalendarDays}
+                  label="Date de naissance"
+                  value={new Date(selectedStudent.dateNaissance).toLocaleDateString('fr-FR')}
+                />
+                <DetailRow
+                  icon={BookOpen}
+                  label="Classe"
+                  value={getClassName(selectedStudent.classeId)}
+                />
+              </div>
             </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Classe</label>
-              <p className="mt-1 text-sm text-gray-900">{getClassName(selectedStudent.classeId)}</p>
+
+            {/* Contact Information Section */}
+            <div className="space-y-4">
+              <h4 className="text-lg font-semibold text-gray-800">Coordonnées</h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <DetailRow
+                  icon={Mail}
+                  label="Email"
+                  value={selectedStudent.email}
+                />
+                <DetailRow
+                  icon={Phone}
+                  label="Téléphone"
+                  value={selectedStudent.telephone}
+                />
+                <DetailRow
+                  icon={Home}
+                  label="Adresse"
+                  value={selectedStudent.adresse}
+                />
+              </div>
             </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Email</label>
-              <p className="mt-1 text-sm text-gray-900">{selectedStudent.email}</p>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Téléphone</label>
-              <p className="mt-1 text-sm text-gray-900">{selectedStudent.telephone}</p>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Adresse</label>
-              <p className="mt-1 text-sm text-gray-900">{selectedStudent.adresse}</p>
+
+            {/* Action buttons at the bottom of the modal */}
+            <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+              <Button variant="outline" onClick={() => setShowDetailModal(false)}>
+                Fermer
+              </Button>
+              <Button variant="secondary" onClick={() => handleEdit(selectedStudent)} icon={Edit}>
+                Modifier
+              </Button>
+              
             </div>
           </div>
         )}
