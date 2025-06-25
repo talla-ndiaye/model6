@@ -7,6 +7,7 @@ import {
   GraduationCap,
   LayoutDashboard,
   Receipt,
+  ReceiptIcon,
   Upload,
   UserCheck,
   Users,
@@ -60,7 +61,10 @@ const Sidebar = ({ isOpen, onClose }) => {
 
       case 'comptable':
         return [
-          { icon: Receipt, label: 'Reçus', path: '/comptable/recus' }
+          { icon: LayoutDashboard, label: 'Tableau de bord', path: '/comptable/tableau-de-bord' },
+          { icon: Receipt, label: 'Paiements', path: '/comptable/paiements' },
+          { icon: ReceiptIcon, label: 'statistiques', path: '/comptable/statistiques' },
+          
         ];
 
       default:

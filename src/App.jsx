@@ -1,3 +1,7 @@
+import "slick-carousel/slick/slick-theme.css";
+import "slick-carousel/slick/slick.css";
+
+
 import { Navigate, Route, BrowserRouter as Router, Routes } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import DashboardLayout from './layouts/DashboardLayout';
@@ -34,10 +38,11 @@ import MesEnfants from './pages/parent/MesEnfants';
 // Pages Comptable
 import GestionPresencesAdmin from './pages/admin/GestionPresences';
 import Recus from './pages/comptable/Recus';
+import StatistiquesPaiements from './pages/comptable/Statistiques';
+import TableauDeBordComptable from './pages/comptable/TableauDebord';
 import PresencesEleve from './pages/eleve/Presences';
 import GestionPresences from './pages/enseignant/GestionPresences';
 import PresencesEnfants from './pages/parent/PresencesEnfants';
-
 function App() {
   return (
     <AuthProvider>
@@ -179,12 +184,17 @@ function App() {
             {/* Routes Comptable */}
             <Route path="comptable/tableau-de-bord" element={
               <ProtectedRoute allowedRoles={['comptable']}>
-                <TableauDeBordEnseignant />
+                <TableauDeBordComptable />
               </ProtectedRoute>
             } />
-            <Route path="comptable/recus" element={
+            <Route path="comptable/paiements" element={
               <ProtectedRoute allowedRoles={['comptable']}>
                 <Recus />
+              </ProtectedRoute>
+            } />
+            <Route path="comptable/statistiques" element={
+              <ProtectedRoute allowedRoles={['comptable']}>
+                <StatistiquesPaiements />
               </ProtectedRoute>
             } />
           </Route>
