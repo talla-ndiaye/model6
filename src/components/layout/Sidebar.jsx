@@ -40,7 +40,9 @@ const Sidebar = ({ isOpen, onClose }) => {
           { icon: LayoutDashboard, label: 'Tableau de bord', path: '/enseignant/tableau-de-bord' },
           { icon: BookOpen, label: 'Mes classes', path: '/enseignant/mes-classes' },
           { icon: Calendar, label: 'Emploi du temps', path: '/enseignant/emploi-du-temps' },
-          { icon: FileBarChart, label: 'Gestion notes', path: '/enseignant/gestion-notes' }
+          { icon: FileBarChart, label: 'Gestion notes', path: '/enseignant/gestion-notes' },
+          { icon: Users, label: 'Gestions Présences', path: '/enseignant/presences' },
+
         ];
 
       case 'eleve':

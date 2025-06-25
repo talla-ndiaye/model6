@@ -34,6 +34,7 @@ import MesEnfants from './pages/parent/MesEnfants';
 // Pages Comptable
 import GestionPresencesAdmin from './pages/admin/GestionPresences';
 import Recus from './pages/comptable/Recus';
+import GestionPresences from './pages/enseignant/GestionPresences';
 
 function App() {
   return (
@@ -125,6 +126,11 @@ function App() {
             <Route path="enseignant/gestion-notes" element={
               <ProtectedRoute allowedRoles={['enseignant']}>
                 <GestionNotes />
+              </ProtectedRoute>
+            } />
+            <Route path="enseignant/presences" element={
+              <ProtectedRoute allowedRoles={['enseignant']}>
+                <GestionPresences />
               </ProtectedRoute>
             } />
 

@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
-import { Plus, Edit, Trash2 } from 'lucide-react';
-import Card from '../../components/ui/Card';
+import { Edit, Plus, Trash2 } from 'lucide-react';
+import { useState } from 'react';
 import Button from '../../components/ui/Button';
+import Card from '../../components/ui/Card';
 import InputField from '../../components/ui/InputField';
 import Modal from '../../components/ui/Modal';
 import Table from '../../components/ui/Table';
 import { useAuth } from '../../context/AuthContext';
-import { notes, eleves, matieres, classes } from '../../data/donneesTemporaires';
+import { classes, eleves, matieres, notes } from '../../data/donneesTemporaires';
 
 const GestionNotes = () => {
   const { user } = useAuth();
@@ -24,23 +24,37 @@ const GestionNotes = () => {
     commentaire: ''
   });
 
-  // Récupérer les classes de l'enseignant
-  const mesClasses = classes.filter(classe => 
+  // Get classes where the logged-in user is the principal teacher
+  const mesClasses = classes.filter(classe =>
     classe.enseignantPrincipal === user.id
   );
 
-  // Récupérer les matières de l'enseignant
-  const mesMatieres = matieres.filter(matiere => 
+  // Get subjects taught by the logged-in user
+  const mesMatieres = matieres.filter(matiere =>
     user.matieres?.includes(matiere.id)
   );
 
-  // Filtrer les notes selon les sélections
+  // Filter notes based on the teacher's assigned classes and subjects,
+  // then apply selected class/matiere filters from the UI.
   const filteredNotes = studentNotes.filter(note => {
     const eleve = eleves.find(e => e.id === note.eleveId);
-    const matchesClass = selectedClass === '' || eleve?.classeId.toString() === selectedClass;
-    const matchesMatiere = selectedMatiere === '' || note.matiereId.toString() === selectedMatiere;
-    const isMyMatiere = user.matieres?.includes(note.matiereId);
-    return matchesClass && matchesMatiere && isMyMatiere;
+
+    // If student not found or note's matiere not taught by user, exclude
+    if (!eleve || !user.matieres?.includes(note.matiereId)) {
+      return false;
+    }
+
+    // Check if the student's class is one of the teacher's classes
+    const isInMyClass = mesClasses.some(classe => classe.id === eleve.classeId);
+    if (!isInMyClass) {
+      return false;
+    }
+
+    // Apply UI filters (selectedClass, selectedMatiere)
+    const matchesSelectedClass = selectedClass === '' || eleve.classeId.toString() === selectedClass;
+    const matchesSelectedMatiere = selectedMatiere === '' || note.matiereId.toString() === selectedMatiere;
+
+    return matchesSelectedClass && matchesSelectedMatiere;
   });
 
   const getEleveName = (eleveId) => {
@@ -62,7 +76,7 @@ const GestionNotes = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     const noteData = {
       ...formData,
       eleveId: parseInt(formData.eleveId),
@@ -74,18 +88,18 @@ const GestionNotes = () => {
 
     if (editingNote) {
       console.log('Modification note:', { ...noteData, id: editingNote.id });
-      setStudentNotes(studentNotes.map(note => 
+      setStudentNotes(studentNotes.map(note =>
         note.id === editingNote.id ? { ...noteData, id: note.id } : note
       ));
     } else {
-      const newNote = { 
-        ...noteData, 
+      const newNote = {
+        ...noteData,
         id: Math.max(...studentNotes.map(n => n.id)) + 1
       };
       console.log('Ajout note:', newNote);
       setStudentNotes([...studentNotes, newNote]);
     }
-    
+
     resetForm();
   };
 
@@ -138,8 +152,8 @@ const GestionNotes = () => {
       accessor: 'matiereId',
       render: (note) => getMatiereName(note.matiereId)
     },
-    { 
-      header: 'Note', 
+    {
+      header: 'Note',
       accessor: 'note',
       render: (note) => (
         <span className={`font-medium ${
@@ -247,7 +261,8 @@ const GestionNotes = () => {
               required
             >
               <option value="">Sélectionner un élève</option>
-              {eleves.filter(eleve => 
+              {/* Filter students to only show those in classes assigned to the teacher */}
+              {eleves.filter(eleve =>
                 mesClasses.some(classe => classe.id === eleve.classeId)
               ).map(eleve => (
                 <option key={eleve.id} value={eleve.id}>
@@ -268,6 +283,7 @@ const GestionNotes = () => {
               required
             >
               <option value="">Sélectionner une matière</option>
+              {/* Only show subjects taught by the teacher */}
               {mesMatieres.map(matiere => (
                 <option key={matiere.id} value={matiere.id}>
                   {matiere.nom}
