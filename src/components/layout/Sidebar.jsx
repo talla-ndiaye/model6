@@ -51,12 +51,14 @@ const Sidebar = ({ isOpen, onClose }) => {
           { icon: Calendar, label: 'Emploi du temps', path: '/eleve/emploi-du-temps' },
           { icon: FileBarChart, label: 'Mes notes', path: '/eleve/notes' },
           { icon: Users, label: 'Absences-Retards-Renvois', path: '/eleve/presences' },
+          { icon: ReceiptIcon, label: 'Historiques de Paiements', path: '/eleve/paiements' },
         ];
 
       case 'parent':
         return [
           { icon: GraduationCap, label: 'Mes enfants', path: '/parent/mes-enfants' },
-          { icon: UserCheck, label: 'Absences-Retards-Renvois', path: '/parent/presences' }
+          { icon: UserCheck, label: 'Absences-Retards-Renvois', path: '/parent/presences' },
+          { icon: ReceiptIcon, label: 'Historiques de Paiements', path: '/parent/paiements' },
         ];
 
       case 'comptable':

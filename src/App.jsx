@@ -40,8 +40,10 @@ import GestionPresencesAdmin from './pages/admin/GestionPresences';
 import Recus from './pages/comptable/Recus';
 import StatistiquesPaiements from './pages/comptable/Statistiques';
 import TableauDeBordComptable from './pages/comptable/TableauDebord';
+import MesPaiementsEleve from "./pages/eleve/Paiements";
 import PresencesEleve from './pages/eleve/Presences';
 import GestionPresences from './pages/enseignant/GestionPresences';
+import HistoriquePaiementsParent from "./pages/parent/Paiements";
 import PresencesEnfants from './pages/parent/PresencesEnfants';
 function App() {
   return (
@@ -162,6 +164,11 @@ function App() {
                 <PresencesEleve />
               </ProtectedRoute>
             } />
+            <Route path="eleve/paiements" element={
+              <ProtectedRoute allowedRoles={['eleve']}>
+                <MesPaiementsEleve />
+              </ProtectedRoute>
+            } />
 
             {/* Routes Parent */}
             <Route path="parent/tableau-de-bord" element={
@@ -172,6 +179,11 @@ function App() {
             <Route path="parent/mes-enfants" element={
               <ProtectedRoute allowedRoles={['parent']}>
                 <MesEnfants />
+              </ProtectedRoute>
+            } />
+            <Route path="parent/paiements" element={
+              <ProtectedRoute allowedRoles={['parent']}>
+                <HistoriquePaiementsParent />
               </ProtectedRoute>
             } />
 
