@@ -1,4 +1,5 @@
 import {
+  BadgeCent,
   BookOpen,
   Calendar,
   CreditCard,
@@ -33,7 +34,7 @@ const Sidebar = ({ isOpen, onClose }) => {
           { icon: Calendar, label: 'Emplois du temps', path: '/admin/emplois-du-temps' },
           { icon: FileBarChart, label: 'Notes & Bulletins', path: '/admin/notes-bulletins' },
           { icon: CreditCard, label: 'Paiements', path: '/admin/paiements' },
-          { icon: CreditCard, label: 'Depenses', path: '/admin/depenses' },
+          { icon: BadgeCent , label: 'Depenses', path: '/admin/depenses' },
           { icon: Upload, label: 'Import élèves', path: '/admin/import-eleves' }
         ];
 
