@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import { Eye, EyeOff, GraduationCap } from 'lucide-react';
+import { useState } from 'react';
 import { Navigate } from 'react-router-dom';
-import { GraduationCap, Eye, EyeOff } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
-import InputField from '../components/ui/InputField';
 import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
+import InputField from '../components/ui/InputField';
+import { useAuth } from '../context/AuthContext';
 
 const Connexion = () => {
   const [formData, setFormData] = useState({
@@ -48,11 +48,11 @@ const Connexion = () => {
   };
 
   const comptesDemonstration = [
-    { role: 'Admin', email: 'admin@ecole.fr', password: 'admin123', color: 'from-terre-500 to-terre-600' },
-    { role: 'Enseignant', email: 'prof@ecole.fr', password: 'prof123', color: 'from-fleuve-500 to-fleuve-600' },
-    { role: 'Parent', email: 'parent@ecole.fr', password: 'parent123', color: 'from-acacia-500 to-acacia-600' },
-    { role: 'Élève', email: 'eleve@ecole.fr', password: 'eleve123', color: 'from-soleil-500 to-soleil-600' },
-    { role: 'Comptable', email: 'comptable@ecole.fr', password: 'comptable123', color: 'from-gray-500 to-gray-600' }
+    { role: 'Admin', email: 'admin@ecole.sn', password: 'admin123', color: 'from-terre-500 to-terre-600' },
+    { role: 'Enseignant', email: 'prof@ecole.sn', password: 'prof123', color: 'from-fleuve-500 to-fleuve-600' },
+    { role: 'Parent', email: 'parent@ecole.sn', password: 'parent123', color: 'from-acacia-500 to-acacia-600' },
+    { role: 'Élève', email: 'eleve@ecole.sn', password: 'eleve123', color: 'from-soleil-500 to-soleil-600' },
+    { role: 'Comptable', email: 'comptable@ecole.sn', password: 'comptable123', color: 'from-gray-500 to-gray-600' }
   ];
 
   const fillDemo = (email, password) => {
@@ -93,7 +93,7 @@ const Connexion = () => {
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                placeholder="votre.email@ecole.fr"
+                placeholder="votre.email@ecole.sn"
                 required
                 className="transition-all duration-200"
               />

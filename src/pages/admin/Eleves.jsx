@@ -1,11 +1,11 @@
-import { BookOpen, CalendarDays, Edit, Eye, Home, Mail, Phone, Plus, Search, Trash2 } from 'lucide-react'; // Added more icons
+import { BookOpen, CalendarDays, Edit, Eye, Home, Mail, Phone, Plus, Search, Trash2, User } from 'lucide-react'; // 'UserFemale' removed from import. User is kept for generic.
 import { useState } from 'react';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import InputField from '../../components/ui/InputField';
 import Modal from '../../components/ui/Modal';
 import Table from '../../components/ui/Table';
-import { classes, eleves } from '../../data/donneesTemporaires';
+import { classes, eleves, utilisateurs } from '../../data/donneesTemporaires';
 
 const Eleves = () => {
   const [students, setStudents] = useState(eleves);
@@ -15,6 +15,8 @@ const Eleves = () => {
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterClasse, setFilterClasse] = useState('');
+  const [filterSexe, setFilterSexe] = useState('');
+
   const [formData, setFormData] = useState({
     nom: '',
     prenom: '',
@@ -22,14 +24,44 @@ const Eleves = () => {
     classeId: '',
     telephone: '',
     email: '',
-    adresse: ''
+    adresse: '',
+    sexe: '',
+    parentIds: []
   });
+
+  const getParentInfo = (parentId) => {
+    return utilisateurs.find(user => user.id === parentId && user.role === 'parent');
+  };
+
+  const getParentsContact = (parentIds) => {
+    if (!parentIds || parentIds.length === 0) return 'Non renseigné';
+    return parentIds.map(parentId => {
+      const parent = getParentInfo(parentId);
+      if (parent) {
+        return (
+          <div key={parentId} className="mb-1 last:mb-0">
+            <p className="text-sm font-medium text-gray-900">{parent.prenom} {parent.nom}</p>
+            <p className="text-xs text-gray-600 flex items-center"><Phone className="w-3 h-3 mr-1" />{parent.telephone || 'N/A'}</p>
+            <p className="text-xs text-gray-600 flex items-center"><Mail className="w-3 h-3 mr-1" />{parent.email || 'N/A'}</p>
+          </div>
+        );
+      }
+      return null;
+    }).filter(Boolean);
+  };
+
 
   const filteredStudents = students.filter(student => {
     const matchesSearch = student.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           student.prenom.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesClasse = filterClasse === '' || student.classeId.toString() === filterClasse;
-    return matchesSearch && matchesClasse;
+    const matchesSexe = filterSexe === '' || student.sexe === filterSexe;
+
+    return matchesSearch && matchesClasse && matchesSexe;
+  }).sort((a, b) => {
+    const nameA = `${a.prenom} ${a.nom}`.toLowerCase();
+    const nameB = `${b.prenom} ${b.nom}`.toLowerCase();
+    return nameA.localeCompare(nameB);
   });
 
   const getClassName = (classeId) => {
@@ -42,19 +74,19 @@ const Eleves = () => {
 
     const studentData = {
       ...formData,
-      classeId: parseInt(formData.classeId)
+      classeId: parseInt(formData.classeId),
+      parentIds: formData.parentIds.map(Number)
     };
 
     if (editingStudent) {
       console.log('Modification élève:', { ...studentData, id: editingStudent.id });
       setStudents(students.map(student =>
-        student.id === editingStudent.id ? { ...studentData, id: student.id, parentIds: student.parentIds } : student
+        student.id === editingStudent.id ? { ...studentData, id: student.id } : student
       ));
     } else {
       const newStudent = {
         ...studentData,
         id: Math.max(...students.map(s => s.id)) + 1,
-        parentIds: []
       };
       console.log('Ajout élève:', newStudent);
       setStudents([...students, newStudent]);
@@ -72,10 +104,12 @@ const Eleves = () => {
       classeId: student.classeId.toString(),
       telephone: student.telephone,
       email: student.email,
-      adresse: student.adresse
+      adresse: student.adresse,
+      sexe: student.sexe || '',
+      parentIds: student.parentIds?.map(String) || []
     });
-    setShowDetailModal(false); // Close detail modal if open
-    setShowModal(true); // Open edit modal
+    setShowDetailModal(false);
+    setShowModal(true);
   };
 
   const handleDetail = (student) => {
@@ -87,7 +121,7 @@ const Eleves = () => {
     if (window.confirm(`Êtes-vous sûr de vouloir supprimer ${student.prenom} ${student.nom} ?`)) {
       console.log('Suppression élève:', student);
       setStudents(students.filter(s => s.id !== student.id));
-      setShowDetailModal(false); // Close detail modal after deletion
+      setShowDetailModal(false);
     }
   };
 
@@ -99,7 +133,9 @@ const Eleves = () => {
       classeId: '',
       telephone: '',
       email: '',
-      adresse: ''
+      adresse: '',
+      sexe: '',
+      parentIds: []
     });
     setEditingStudent(null);
     setShowModal(false);
@@ -121,7 +157,11 @@ const Eleves = () => {
       accessor: 'classeId',
       render: (student) => getClassName(student.classeId)
     },
-    { header: 'Téléphone', accessor: 'telephone' },
+    {
+      header: 'Parent(s) Contact',
+      accessor: 'parentIds',
+      render: (student) => getParentsContact(student.parentIds)
+    },
     {
       header: 'Actions',
       accessor: 'actions',
@@ -166,6 +206,11 @@ const Eleves = () => {
     </div>
   );
 
+  const parentOptions = utilisateurs.filter(u => u.role === 'parent').map(p => ({
+    value: p.id,
+    label: `${p.prenom} ${p.nom} (ID: ${p.id})`
+  }));
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -185,14 +230,14 @@ const Eleves = () => {
               placeholder="Rechercher par nom ou prénom..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              icon={Search} // Added search icon to input
+              icon={Search}
             />
           </div>
           <div className="sm:w-48">
             <select
               value={filterClasse}
               onChange={(e) => setFilterClasse(e.target.value)}
-              className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-700" // Added text color
+              className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-700"
             >
               <option value="">Toutes les classes</option>
               {classes.map(classe => (
@@ -200,6 +245,17 @@ const Eleves = () => {
                   {classe.nom}
                 </option>
               ))}
+            </select>
+          </div>
+          <div className="sm:w-48">
+            <select
+              value={filterSexe}
+              onChange={(e) => setFilterSexe(e.target.value)}
+              className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-700"
+            >
+              <option value="">Tous les sexes</option>
+              <option value="M">Masculin</option>
+              <option value="F">Féminin</option>
             </select>
           </div>
         </div>
@@ -238,6 +294,19 @@ const Eleves = () => {
             type="date"
             value={formData.dateNaissance}
             onChange={(e) => setFormData({...formData, dateNaissance: e.target.value})}
+            required
+          />
+          
+          <InputField
+            label="Sexe"
+            type="select"
+            value={formData.sexe}
+            onChange={(e) => setFormData({...formData, sexe: e.target.value})}
+            options={[
+              { value: '', label: 'Sélectionner le sexe' },
+              { value: 'M', label: 'Masculin' },
+              { value: 'F', label: 'Féminin' }
+            ]}
             required
           />
 
@@ -281,6 +350,19 @@ const Eleves = () => {
             required
           />
 
+          <InputField
+            label="Parent(s) associé(s)"
+            type="select"
+            multiple
+            value={formData.parentIds}
+            onChange={(e) => setFormData({...formData, parentIds: Array.from(e.target.selectedOptions, option => option.value)})}
+            options={parentOptions}
+            placeholder="Sélectionner un ou plusieurs parents"
+            className="h-32"
+          />
+          <p className="text-xs text-gray-500 mt-1">Maintenez Ctrl/Cmd pour sélectionner plusieurs parents</p>
+
+
           <div className="flex justify-end space-x-3 pt-4">
             <Button variant="outline" onClick={resetForm}>
               Annuler
@@ -300,7 +382,7 @@ const Eleves = () => {
         size="md"
       >
         {selectedStudent && (
-          <div className="space-y-6"> {/* Increased overall spacing */}
+          <div className="space-y-6">
             {/* Header section with Name and Avatar */}
             <div className="flex items-center space-x-4 pb-4 border-b border-gray-200">
               <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-2xl font-bold uppercase">
@@ -328,12 +410,17 @@ const Eleves = () => {
                   label="Classe"
                   value={getClassName(selectedStudent.classeId)}
                 />
+                <DetailRow
+                  icon={selectedStudent.sexe === 'M' ? User : User} // Fallback to User if UserFemale not available
+                  label="Sexe"
+                  value={selectedStudent.sexe === 'M' ? 'Masculin' : selectedStudent.sexe === 'F' ? 'Féminin' : 'Non spécifié'}
+                />
               </div>
             </div>
 
             {/* Contact Information Section */}
             <div className="space-y-4">
-              <h4 className="text-lg font-semibold text-gray-800">Coordonnées</h4>
+              <h4 className="text-lg font-semibold text-gray-800">Coordonnées Élève</h4>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <DetailRow
                   icon={Mail}
@@ -353,6 +440,29 @@ const Eleves = () => {
               </div>
             </div>
 
+            {/* Parent Information Section - NEW */}
+            <div className="space-y-4">
+              <h4 className="text-lg font-semibold text-gray-800">Informations Parentales</h4>
+              {selectedStudent.parentIds && selectedStudent.parentIds.length > 0 ? (
+                selectedStudent.parentIds.map(parentId => {
+                  const parent = getParentInfo(parentId);
+                  if (parent) {
+                    return (
+                      <div key={parentId} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <DetailRow icon={User} label="Parent" value={`${parent.prenom} ${parent.nom}`} />
+                        <DetailRow icon={Phone} label="Téléphone Parent" value={parent.telephone || 'N/A'} />
+                        <DetailRow icon={Mail} label="Email Parent" value={parent.email || 'N/A'} />
+                      </div>
+                    );
+                  }
+                  return null;
+                })
+              ) : (
+                <p className="text-gray-500 text-sm p-3 bg-gray-50 rounded-lg border border-gray-100">Aucun parent associé.</p>
+              )}
+            </div>
+
+
             {/* Action buttons at the bottom of the modal */}
             <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
               <Button variant="outline" onClick={() => setShowDetailModal(false)}>
@@ -361,7 +471,9 @@ const Eleves = () => {
               <Button variant="secondary" onClick={() => handleEdit(selectedStudent)} icon={Edit}>
                 Modifier
               </Button>
-              
+              <Button variant="danger" onClick={() => handleDelete(selectedStudent)} icon={Trash2}>
+                Supprimer
+              </Button>
             </div>
           </div>
         )}

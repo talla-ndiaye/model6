@@ -1,19 +1,20 @@
-import { AlertCircle, Calendar, CheckCircle, Clock, Edit, Users, UserX, XCircle } from 'lucide-react'; // Added Calendar, Plus, Search for consistency
-import { useMemo, useState } from 'react'; // Added useMemo for performance
+import { AlertCircle, Calendar, CheckCircle, Clock, Edit, Users, UserX, XCircle } from 'lucide-react';
+import { useMemo, useState } from 'react';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import InputField from '../../components/ui/InputField';
 import Modal from '../../components/ui/Modal';
-import Table from '../../components/ui/Table'; // Ensure Table is imported
+import Table from '../../components/ui/Table';
 
-import { classes, eleves, enseignants, presences as initialPresences } from '../../data/donneesTemporaires'; // Import enseignants
+import { classes, eleves, enseignants, presences as initialPresences } from '../../data/donneesTemporaires';
 
 const GestionPresencesAdmin = () => {
   const [presences, setPresences] = useState(initialPresences);
   const [selectedClass, setSelectedClass] = useState('');
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [selectedDate, setSelectedDate] = useState('');
+  const [selectedStatus, setSelectedStatus] = useState('');
   const [showModal, setShowModal] = useState(false);
-  const [selectedPresence, setSelectedPresence] = useState(null); // Full presence object when managing
+  const [selectedPresence, setSelectedPresence] = useState(null);
   const [formData, setFormData] = useState({
     justifie: false,
     motifJustification: '',
@@ -62,8 +63,10 @@ const GestionPresencesAdmin = () => {
         return 'En retard';
       case 'renvoye':
         return 'Renvoyé';
+      case 'non_marque':
+          return 'Non marqué';
       default:
-        return 'Non marqué'; // New status for students without a record
+        return 'Inconnu';
     }
   };
 
@@ -84,54 +87,90 @@ const GestionPresencesAdmin = () => {
 
   // --- Data Filtering & Aggregation ---
 
-  // Get students relevant to the selected class
   const elevesClasse = useMemo(() => {
     return selectedClass
       ? eleves.filter(eleve => String(eleve.classeId) === String(selectedClass))
-      : eleves; // If no class selected, consider all students (could be large)
+      : eleves;
   }, [selectedClass]);
 
-  // Get presences for the selected date and class
-  const presencesDuJourFiltered = useMemo(() => {
+  const presencesFiltered = useMemo(() => {
     return presences.filter(p =>
-      p.date === selectedDate &&
-      (selectedClass === '' || String(p.classeId) === String(selectedClass))
+      (selectedDate === '' || p.date === selectedDate) &&
+      (selectedClass === '' || String(p.classeId) === String(selectedClass)) &&
+      (selectedStatus === '' || p.statut === selectedStatus)
     );
-  }, [presences, selectedDate, selectedClass]);
+  }, [presences, selectedDate, selectedClass, selectedStatus]);
 
 
-  // Prepare data for the table, including students without a recorded presence for the day
   const tableData = useMemo(() => {
-    const data = elevesClasse.map(eleve => {
-      const presenceRecord = presencesDuJourFiltered.find(p => String(p.eleveId) === String(eleve.id));
-      return presenceRecord || { // Return existing record or a placeholder
-        id: `temp-${eleve.id}-${selectedDate}`, // Unique ID for temp records
-        eleveId: eleve.id,
-        classeId: eleve.classeId,
-        date: selectedDate,
-        statut: 'non_marque', // Custom status for 'not marked'
-        justifie: false,
-        motifJustification: null,
-        commentaire: null
-      };
-    });
-    return data;
-  }, [elevesClasse, presencesDuJourFiltered, selectedDate]);
+    if (selectedDate === '') {
+      return presencesFiltered.map(presenceRecord => ({
+        ...presenceRecord,
+        id: presenceRecord.id,
+        eleveId: presenceRecord.eleveId,
+        classeId: presenceRecord.classeId,
+        date: presenceRecord.date,
+        statut: presenceRecord.statut,
+        justifie: presenceRecord.justifie,
+        motifJustification: presenceRecord.motifJustification,
+        commentaire: presenceRecord.commentaire,
+      }));
+    } else {
+      const data = elevesClasse.map(eleve => {
+        const presenceRecord = presencesFiltered.find(p => String(p.eleveId) === String(eleve.id) && p.date === selectedDate);
+        return presenceRecord || {
+          id: `temp-${eleve.id}-${selectedDate}`,
+          eleveId: eleve.id,
+          classeId: eleve.classeId,
+          date: selectedDate,
+          statut: 'non_marque',
+          justifie: false,
+          motifJustification: null,
+          commentaire: null
+        };
+      }).filter(p => {
+          if (selectedStatus === 'non_marque') {
+              return p.statut === 'non_marque';
+          }
+          return true;
+      });
+      return data;
+    }
+  }, [elevesClasse, presencesFiltered, selectedDate, selectedStatus]);
 
 
-  // Stats calculation
   const stats = useMemo(() => {
-    const totalStudentsInContext = elevesClasse.length; // Total students in view
-    const presents = presencesDuJourFiltered.filter(p => p.statut === 'present').length;
-    const absents = presencesDuJourFiltered.filter(p => p.statut === 'absent').length;
-    const retards = presencesDuJourFiltered.filter(p => p.statut === 'retard').length;
-    const renvoyes = presencesDuJourFiltered.filter(p => p.statut === 'renvoye').length;
-    const justifies = presencesDuJourFiltered.filter(p => p.justifie).length;
-    const nonJustifies = presencesDuJourFiltered.filter(p => !p.justifie && (p.statut === 'absent' || p.statut === 'retard' || p.statut === 'renvoye')).length;
+    const totalStudentsInContext = elevesClasse.length;
 
-    // The 'total' stat should reflect the total number of students whose presence could be marked.
-    // If a class is selected, it's the students in that class. If no class, it's all students in 'eleves'.
-    const totalMarkable = selectedClass ? elevesClasse.length : eleves.length;
+    let totalMarkable;
+    let presents, absents, retards, renvoyes, justifies, nonJustifies;
+
+    if (selectedDate === '') {
+        presents = presencesFiltered.filter(p => p.statut === 'present').length;
+        absents = presencesFiltered.filter(p => p.statut === 'absent').length;
+        retards = presencesFiltered.filter(p => p.statut === 'retard').length;
+        renvoyes = presencesFiltered.filter(p => p.statut === 'renvoye').length;
+        justifies = presencesFiltered.filter(p => p.justifie).length;
+        nonJustifies = presencesFiltered.filter(p => !p.justifie && (p.statut === 'absent' || p.statut === 'retard' || p.statut === 'renvoye')).length;
+        totalMarkable = new Set(presencesFiltered.map(p => p.eleveId)).size;
+    } else {
+        const actualPresencesForStats = tableData.filter(p => p.statut !== 'non_marque');
+        const nonMarkedStudents = tableData.filter(p => p.statut === 'non_marque').length;
+
+        presents = actualPresencesForStats.filter(p => p.statut === 'present').length;
+        absents = actualPresencesForStats.filter(p => p.statut === 'absent').length;
+        retards = actualPresencesForStats.filter(p => p.statut === 'retard').length;
+        renvoyes = actualPresencesForStats.filter(p => p.statut === 'renvoye').length;
+        justifies = actualPresencesForStats.filter(p => p.justifie).length;
+        nonJustifies = actualPresencesForStats.filter(p => !p.justifie && (p.statut === 'absent' || p.statut === 'retard' || p.statut === 'renvoye')).length;
+
+        totalMarkable = totalStudentsInContext;
+        if (selectedStatus === 'non_marque') {
+            totalMarkable = nonMarkedStudents;
+        } else if (selectedStatus !== '') {
+            totalMarkable = actualPresencesForStats.filter(p => p.statut === selectedStatus).length;
+        }
+    }
 
 
     return {
@@ -143,20 +182,21 @@ const GestionPresencesAdmin = () => {
       justifies,
       nonJustifies
     };
-  }, [elevesClasse, presencesDuJourFiltered, selectedClass]);
+  }, [elevesClasse, presencesFiltered, selectedClass, selectedDate, selectedStatus, tableData]);
 
 
   // --- Modal & Form Logic ---
 
   const openJustificationModal = (presence) => {
-    // Only open for actual presence records or if it's a 'non_marque' record for adding
-    if (presence.statut !== 'non_marque' && presence.id.toString().startsWith('temp-')) {
-        // If it's a temporary 'non_marque' record, don't open modal for justification directly
-        // You might want a different modal to MARK initial presence for the day
-        alert("Cette entrée n'est pas encore une présence enregistrée. Vous devez d'abord marquer la présence de l'élève.");
-        return;
+    if (presence.statut === 'non_marque') {
+      alert("Cette entrée n'est pas encore une présence enregistrée. Vous devez d'abord marquer la présence de l'élève (par exemple, Absent ou Retard) avant de pouvoir la justifier.");
+      return;
     }
-    
+    if (presence.statut === 'present') {
+      alert("Un élève présent n'a pas besoin de justification.");
+      return;
+    }
+
     setSelectedPresence(presence);
     setFormData({
       justifie: presence.justifie || false,
@@ -177,18 +217,13 @@ const GestionPresencesAdmin = () => {
       dateModification: new Date().toISOString()
     };
 
-    // Update in local state (for simulation)
     setPresences(prevPresences => {
       const existingIndex = prevPresences.findIndex(p => String(p.id) === String(selectedPresence.id));
       if (existingIndex > -1) {
-        // If it's an existing record, update it
         return prevPresences.map((p, index) =>
           index === existingIndex ? updatedPresence : p
         );
       } else {
-        // If it's a newly marked presence (from 'non_marque' to 'absent/retard' and then justified)
-        // This scenario is more complex without a full 'mark presence' modal
-        // For now, this modal is strictly for JUSTIFYING existing records.
         console.warn("Attempted to justify a non-existent presence record. This modal is for existing entries only.");
         return prevPresences;
       }
@@ -230,6 +265,11 @@ const GestionPresencesAdmin = () => {
       )
     },
     {
+      header: 'Date',
+      accessor: 'date',
+      render: (presence) => new Date(presence.date).toLocaleDateString('fr-FR')
+    },
+    {
       header: 'Statut',
       accessor: 'statut',
       render: (presence) => (
@@ -242,21 +282,27 @@ const GestionPresencesAdmin = () => {
       )
     },
     {
-      header: 'Heure (Début-Fin)',
-      accessor: 'heureDebut',
-      render: (presence) => presence.statut === 'present' || presence.statut === 'retard' ? `${presence.heureDebut || 'N/A'} - ${presence.heureFin || 'N/A'}` : 'N/A'
+      header: 'Heure',
+      accessor: 'heureDebut', // On utilise toujours 'heureDebut' comme source
+      render: (presence) => {
+        // Affiche l'heure si elle est présente, quel que soit le statut, sauf pour 'non_marque'
+        if (presence.statut !== 'non_marque' && presence.heure) {
+            return presence.heure;
+        }
+        return 'N/A';
+      }
     },
     {
-        header: 'Enseignant',
-        accessor: 'enseignantId',
-        render: (presence) => presence.enseignantId ? getEnseignantName(presence.enseignantId) : 'N/A'
+      header: 'Enseignant',
+      accessor: 'enseignantId',
+      render: (presence) => presence.enseignantId ? getEnseignantName(presence.enseignantId) : 'N/A'
     },
     {
       header: 'Justification',
       accessor: 'justifie',
       render: (presence) => (
         <div className="flex items-center space-x-2">
-          {presence.statut === 'present' ? (
+          {presence.statut === 'present' || presence.statut === 'non_marque' ? (
             <span className="text-gray-500 text-sm">N/A</span>
           ) : presence.justifie ? (
             <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">Justifié</span>
@@ -267,20 +313,20 @@ const GestionPresencesAdmin = () => {
       )
     },
     {
-        header: 'Motif',
-        accessor: 'motifJustification',
-        render: (presence) => (
-            <p className="text-sm text-gray-700 max-w-xs truncate" title={presence.motifJustification || 'Aucun motif'}>
-                {presence.motifJustification || 'Aucun'}
-            </p>
-        )
+      header: 'Motif',
+      accessor: 'motifJustification',
+      render: (presence) => (
+        <p className="text-sm text-gray-700 max-w-xs truncate" title={presence.motifJustification || 'Aucun motif'}>
+          {presence.motifJustification || 'Aucun'}
+        </p>
+      )
     },
     {
       header: 'Commentaire',
       accessor: 'commentaire',
       render: (presence) => (
         <p className="text-sm text-gray-700 max-w-xs truncate" title={presence.commentaire || 'Aucun commentaire'}>
-            {presence.commentaire || 'Aucun'}
+          {presence.commentaire || 'Aucun'}
         </p>
       )
     },
@@ -293,7 +339,7 @@ const GestionPresencesAdmin = () => {
           variant="outline"
           onClick={() => openJustificationModal(presence)}
           icon={Edit}
-          disabled={presence.statut === 'present' || presence.statut === 'non_marque'} // Cannot justify 'present' or 'non_marque' yet
+          disabled={presence.statut === 'present' || presence.statut === 'non_marque'}
         >
           Gérer
         </Button>
@@ -311,7 +357,7 @@ const GestionPresencesAdmin = () => {
 
       {/* Filters Card */}
       <Card className="p-6 shadow-sm">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <label htmlFor="select-class" className="block text-sm font-medium text-gray-700 mb-1">
               Classe
@@ -333,7 +379,7 @@ const GestionPresencesAdmin = () => {
 
           <div>
             <label htmlFor="select-date" className="block text-sm font-medium text-gray-700 mb-1">
-              Date
+              Date (Optionnel)
             </label>
             <input
               id="select-date"
@@ -342,6 +388,26 @@ const GestionPresencesAdmin = () => {
               onChange={(e) => setSelectedDate(e.target.value)}
               className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-700"
             />
+          </div>
+
+          {/* New Status Filter */}
+          <div>
+            <label htmlFor="select-status" className="block text-sm font-medium text-gray-700 mb-1">
+              Statut
+            </label>
+            <select
+              id="select-status"
+              value={selectedStatus}
+              onChange={(e) => setSelectedStatus(e.target.value)}
+              className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-700"
+            >
+              <option value="">Tous les statuts</option>
+              <option value="present">Présent</option>
+              <option value="absent">Absent</option>
+              <option value="retard">En retard</option>
+              <option value="renvoye">Renvoyé</option>
+              {selectedDate !== '' && <option value="non_marque">Non marqué</option>}
+            </select>
           </div>
         </div>
       </Card>
@@ -378,16 +444,16 @@ const GestionPresencesAdmin = () => {
           <p className="text-sm text-purple-600">Renvoyés</p>
         </Card>
 
-        <Card className="p-4 text-center bg-teal-50 border-teal-100 shadow-sm"> {/* Changed to Teal */}
-          <CheckCircle className="w-6 h-6 text-teal-600 mx-auto mb-2" /> {/* Changed to Teal */}
-          <p className="text-2xl font-bold text-teal-800">{stats.justifies}</p> {/* Changed to Teal */}
-          <p className="text-sm text-teal-600">Justifiés</p> {/* Changed to Teal */}
+        <Card className="p-4 text-center bg-teal-50 border-teal-100 shadow-sm">
+          <CheckCircle className="w-6 h-6 text-teal-600 mx-auto mb-2" />
+          <p className="text-2xl font-bold text-teal-800">{stats.justifies}</p>
+          <p className="text-sm text-teal-600">Justifiés</p>
         </Card>
 
-        <Card className="p-4 text-center bg-rose-50 border-rose-100 shadow-sm"> {/* Changed to Rose */}
-          <AlertCircle className="w-6 h-6 text-rose-600 mx-auto mb-2" /> {/* Changed to Rose */}
-          <p className="text-2xl font-bold text-rose-800">{stats.nonJustifies}</p> {/* Changed to Rose */}
-          <p className="text-sm text-rose-600">Non justifiés</p> {/* Changed to Rose */}
+        <Card className="p-4 text-center bg-rose-50 border-rose-100 shadow-sm">
+          <AlertCircle className="w-6 h-6 text-rose-600 mx-auto mb-2" />
+          <p className="text-2xl font-bold text-rose-800">{stats.nonJustifies}</p>
+          <p className="text-sm text-rose-600">Non justifiés</p>
         </Card>
       </div>
 
@@ -395,28 +461,36 @@ const GestionPresencesAdmin = () => {
       <Card className="p-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
           <Calendar className="w-5 h-5 mr-2 text-blue-600" />
-          Présences du {new Date(selectedDate).toLocaleDateString('fr-FR')} {selectedClass && `pour ${getClassName(parseInt(selectedClass))}`}
+          Présences {selectedDate === '' ? 'enregistrées' : `du ${new Date(selectedDate).toLocaleDateString('fr-FR')}`}
+          {selectedClass && ` pour ${getClassName(parseInt(selectedClass))}`}
+          {selectedStatus && ` (Statut: ${getStatusLabel(selectedStatus)})`}
         </h2>
 
-        {selectedClass === '' && elevesClasse.length > 0 && (
-            <div className="text-center py-4 bg-blue-50 border border-blue-100 rounded-lg mb-6">
-                <p className="text-blue-700 text-sm font-medium">
-                    Sélectionnez une classe pour une vue plus détaillée des présences.
-                </p>
-            </div>
+        {selectedClass === '' && selectedDate === '' && selectedStatus === '' && eleves.length > 0 && (
+          <div className="text-center py-4 bg-blue-50 border border-blue-100 rounded-lg mb-6">
+            <p className="text-blue-700 text-sm font-medium">
+              Affichage de toutes les présences enregistrées. Utilisez les filtres ci-dessus pour affiner la recherche.
+            </p>
+          </div>
+        )}
+        {tableData.length === 0 && (selectedClass !== '' || selectedDate !== '' || selectedStatus !== '') && (
+             <div className="text-center py-4 bg-yellow-50 border border-yellow-100 rounded-lg mb-6">
+                 <p className="text-yellow-700 text-sm font-medium">
+                     Aucune présence ne correspond aux filtres actuels.
+                 </p>
+             </div>
         )}
 
-        {elevesClasse.length > 0 ? (
+        {tableData.length > 0 ? (
           <Table
             columns={columns}
             data={tableData}
-            // Optional: Add a message if no records match filters
-            noDataMessage="Aucun élève trouvé pour la classe ou la date sélectionnée."
+            noDataMessage="Aucune présence trouvée pour les filtres sélectionnés."
           />
         ) : (
           <div className="text-center py-8">
             <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-500">Sélectionnez une classe pour afficher les présences.</p>
+            <p className="text-gray-500">Aucune présence à afficher. Essayez de changer les filtres.</p>
           </div>
         )}
       </Card>
@@ -429,8 +503,8 @@ const GestionPresencesAdmin = () => {
         size="md"
       >
         {selectedPresence && (
-          <form onSubmit={handleSubmit} className="space-y-6 p-2"> {/* Added some padding */}
-            <div className="bg-blue-50 p-4 rounded-lg border border-blue-100 shadow-inner"> {/* Blue background */}
+          <form onSubmit={handleSubmit} className="space-y-6 p-2">
+            <div className="bg-blue-50 p-4 rounded-lg border border-blue-100 shadow-inner">
               <h3 className="font-semibold text-blue-800 mb-3">Informations sur la présence</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                 <div>
@@ -451,57 +525,56 @@ const GestionPresencesAdmin = () => {
                   <p className="font-medium text-gray-900">{new Date(selectedPresence.date).toLocaleDateString('fr-FR')}</p>
                 </div>
                 <div>
-                  <span className="text-gray-600">Enseignant ayant marqué:</span> {/* Corrected label */}
-                  {/* Corrected logic to get teacher name from presence record */}
+                  <span className="text-gray-600">Enseignant ayant marqué:</span>
                   <p className="font-medium text-gray-900">{selectedPresence.enseignantId ? getEnseignantName(selectedPresence.enseignantId) : 'Non défini'}</p>
                 </div>
               </div>
             </div>
 
             {selectedPresence.statut !== 'present' && selectedPresence.statut !== 'non_marque' && (
-                <div className="space-y-4">
-                    <div className="flex items-center mt-4">
-                        <input
-                            type="checkbox"
-                            id="justifie"
-                            checked={formData.justifie}
-                            onChange={(e) => setFormData({...formData, justifie: e.target.checked})}
-                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                        />
-                        <label htmlFor="justifie" className="ml-2 block text-sm font-medium text-gray-900">
-                            Absence/Retard justifié(e)
-                        </label>
-                    </div>
-
-                    <InputField
-                        label="Motif de justification"
-                        value={formData.motifJustification}
-                        onChange={(e) => setFormData({...formData, motifJustification: e.target.value})}
-                        placeholder="Rendez-vous médical, problème de transport..."
-                        type="textarea" // Changed to textarea for better input
-                        rows="2"
-                        disabled={!formData.justifie} // Disable if not justified
-                    />
-
-                    <InputField
-                        label="Commentaire administratif"
-                        value={formData.commentaire}
-                        onChange={(e) => setFormData({...formData, commentaire: e.target.value})}
-                        placeholder="Commentaire interne..."
-                        type="textarea" // Changed to textarea for better input
-                        rows="3"
-                    />
+              <div className="space-y-4">
+                <div className="flex items-center mt-4">
+                  <input
+                    type="checkbox"
+                    id="justifie"
+                    checked={formData.justifie}
+                    onChange={(e) => setFormData({ ...formData, justifie: e.target.checked })}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  />
+                  <label htmlFor="justifie" className="ml-2 block text-sm font-medium text-gray-900">
+                    Absence/Retard justifié(e)
+                  </label>
                 </div>
+
+                <InputField
+                  label="Motif de justification"
+                  value={formData.motifJustification}
+                  onChange={(e) => setFormData({ ...formData, motifJustification: e.target.value })}
+                  placeholder="Rendez-vous médical, problème de transport..."
+                  type="textarea"
+                  rows="2"
+                  disabled={!formData.justifie}
+                />
+
+                <InputField
+                  label="Commentaire administratif"
+                  value={formData.commentaire}
+                  onChange={(e) => setFormData({ ...formData, commentaire: e.target.value })}
+                  placeholder="Commentaire interne..."
+                  type="textarea"
+                  rows="3"
+                />
+              </div>
             )}
             {selectedPresence.statut === 'non_marque' && (
-                <div className="text-center py-4 text-gray-600">
-                    Cette présence n'a pas encore été marquée. Vous ne pouvez la justifier qu'après avoir enregistré un statut (Absent, Retard, Renvoyé).
-                </div>
+              <div className="text-center py-4 text-gray-600">
+                Cette entrée n'est pas une présence enregistrée. Vous ne pouvez la justifier qu'après avoir enregistré un statut (Absent, Retard, Renvoyé).
+              </div>
             )}
             {selectedPresence.statut === 'present' && (
-                <div className="text-center py-4 text-gray-600">
-                    Un élève présent n'a pas besoin de justification.
-                </div>
+              <div className="text-center py-4 text-gray-600">
+                Un élève présent n'a pas besoin de justification.
+              </div>
             )}
 
             <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
