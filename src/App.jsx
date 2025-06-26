@@ -36,6 +36,7 @@ import NotesEleve from './pages/eleve/Notes';
 import MesEnfants from './pages/parent/MesEnfants';
 
 // Pages Comptable
+import GestionDepenses from "./pages/admin/Depenses";
 import GestionPresencesAdmin from './pages/admin/GestionPresences';
 import Recus from './pages/comptable/Recus';
 import StatistiquesPaiements from './pages/comptable/Statistiques';
@@ -113,6 +114,11 @@ function App() {
             <Route path="admin/presences" element={
               <ProtectedRoute allowedRoles={['admin']}>
                 <GestionPresencesAdmin />
+              </ProtectedRoute>
+            } />
+            <Route path="admin/depenses" element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <GestionDepenses />
               </ProtectedRoute>
             } />
 

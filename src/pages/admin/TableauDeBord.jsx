@@ -2,16 +2,15 @@ import {
   BookOpen,
   CreditCard,
   GraduationCap,
-  TrendingUp,
-  Users,
+  Users
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import Slider from 'react-slick';
 import {
-  Bar,
-  BarChart,
   Cell,
   Legend,
+  Line, // Import Line for line charts
+  LineChart, // Import LineChart
   Pie,
   PieChart,
   ResponsiveContainer,
@@ -19,7 +18,7 @@ import {
   XAxis,
   YAxis
 } from 'recharts';
-import 'slick-carousel/slick/slick-theme.css'; // Ensure these are imported or globally available
+import 'slick-carousel/slick/slick-theme.css';
 import 'slick-carousel/slick/slick.css';
 import Card from '../../components/ui/Card';
 import {
@@ -27,7 +26,7 @@ import {
   depenses,
   eleves,
   enseignants,
-  // Removed evenements as it's no longer displayed
+  // Removed evenements from import as it's no longer displayed
   paiements
 } from '../../data/donneesTemporaires';
 
@@ -52,14 +51,14 @@ const TableauDeBord = () => {
 
   const COLORS_GENDER = ['#4299E1', '#F687B3']; // Matching colors for PieChart cells
 
-  // Financial Evolution Data (for the last 6 months)
+  // Financial Evolution Data (for the last 12 months for Payments and Expenses)
   const financialData = useMemo(() => {
     const now = new Date();
     const currentYear = now.getFullYear();
     const currentMonth = now.getMonth(); // 0-indexed
 
     const data = [];
-    for (let i = 11; i >= 0; i--) { // Loop for last 12 months for a full year view
+    for (let i = 11; i >= 0; i--) { // Loop for last 12 months
       let m = currentMonth - i;
       let y = currentYear;
       if (m < 0) {
@@ -145,15 +144,15 @@ const TableauDeBord = () => {
 
   // --- Slider Settings for Recharts Cards ---
   const sliderSettings = {
-    dots: true, // Keep dots for navigation
-    infinite: true, // Allow infinite loop
-    speed: 700, // Slightly slower transition for smoother feel
-    slidesToShow: 3, // Show 3 cards by default
+    dots: true,
+    infinite: true,
+    speed: 700,
+    slidesToShow: 3,
     slidesToScroll: 1,
-    arrows: false, // Hide arrows for a cleaner look, dots are sufficient
-    autoplay: true, // Auto-scroll the cards
-    autoplaySpeed: 4000, // Slower autoplay
-    cssEase: "ease-in-out", // Smoother animation curve
+    arrows: false,
+    autoplay: true,
+    autoplaySpeed: 4000,
+    cssEase: "ease-in-out",
     responsive: [
       { breakpoint: 1024, settings: { slidesToShow: 2, slidesToScroll: 1 } },
       { breakpoint: 768, settings: { slidesToShow: 1, slidesToScroll: 1 } }
@@ -163,11 +162,11 @@ const TableauDeBord = () => {
   return (
     <div className="bg-gradient-to-br from-blue-50 via-white to-green-50 min-h-screen p-6 sm:p-10 font-sans">
       {/* Header Section */}
-      <div className="mb-3 animate-fade-in"> {/* Center aligned header */}
+      <div className="mb-12 animate-fade-in">
         <h1 className="text-xl sm:text-2xl font-extrabold text-gray-900 tracking-tight mb-4">
-          Tableau de Bord 
+          Tableau de Bord
         </h1>
-        
+       
       </div>
 
       {/* KPI Cards Section (Slider) */}
@@ -178,25 +177,18 @@ const TableauDeBord = () => {
               <div key={idx} className="px-3">
                 <Card className="p-6 shadow-xl border border-gray-100 rounded-2xl bg-white transform hover:scale-[1.03] transition-all duration-300 overflow-hidden relative">
                   
-
-                  <div className="flex items-start justify-between mb-4">
+                 <div className="flex items-start justify-between mb-4">
                     <div className="flex-1">
                       <p className="text-sm text-gray-600 mb-1 font-medium">{stat.title}</p>
                       <p className="text-3xl font-extrabold text-gray-900 leading-tight">{stat.value}</p>
                     </div>
 
                     {/* Icon centered in colored circle */}
-                    <div className={`w-12 h-12 flex items-center justify-center rounded-full text-white ${stat.color} shadow-lg hidden sm:flex`}>
-                      <stat.icon className="w-6 h-6" />
+                    <div className={`w-10 h-10 flex items-center justify-center rounded-full text-white ${stat.color} shadow-lg hidden sm:flex`}>
+                      <stat.icon className="w-5 h-5" />
                     </div>
                   </div>
 
-
-                  {/* Change indicator with clearer text */}
-                  <div className={`text-sm font-semibold ${getChangeColor(stat.changeType)} flex items-center`}>
-                    <TrendingUp className="w-4 h-4 mr-1" />
-                    {stat.change} <span className="text-gray-500 font-normal ml-1">vs. mois précédent</span>
-                  </div>
                 </Card>
               </div>
             ))}
@@ -205,11 +197,11 @@ const TableauDeBord = () => {
       </section>
 
       {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 sm:gap-8"> {/* Adjusted grid to 3 columns on XL screens */}
         {/* Gender Distribution Chart */}
-        <Card className="p-6 shadow-xl border border-gray-100 rounded-2xl bg-white flex flex-col items-center">
+        <Card className="lg:col-span-1 p-6 shadow-xl border border-gray-100 rounded-2xl bg-white flex flex-col items-center">
           <h2 className="text-xl font-bold text-gray-800 mb-6 text-center">Répartition Garçons / Filles</h2>
-          <div style={{ width: '100%', height: '250px' }}> {/* Increased height for better proportions */}
+          <div style={{ width: '100%', height: '250px' }}>
             {hasMounted && (
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -229,23 +221,28 @@ const TableauDeBord = () => {
                         fill={entry.color}
                         stroke={entry.color}
                         strokeWidth={2}
-                        // Add a subtle hover effect (scale)
-                        onMouseOver={(e) => e.currentTarget.setAttribute('transform', `${e.currentTarget.getAttribute('transform')} scale(1.05)`)}
-                        onMouseOut={(e) => e.currentTarget.setAttribute('transform', e.currentTarget.getAttribute('transform').replace(' scale(1.05)', ''))}
+                        onMouseOver={(e) => {
+                          e.currentTarget.setAttribute('transform', `${e.currentTarget.getAttribute('transform')} scale(1.05)`);
+                          e.currentTarget.style.filter = 'brightness(1.1)';
+                        }}
+                        onMouseOut={(e) => {
+                          e.currentTarget.setAttribute('transform', e.currentTarget.getAttribute('transform').replace(' scale(1.05)', ''));
+                          e.currentTarget.style.filter = 'none';
+                        }}
                       />
                     ))}
                   </Pie>
                   <Tooltip
                     formatter={(value, name) => [`${value} élèves`, name]}
                     contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0px 0px 10px rgba(0,0,0,0.1)', fontSize: '14px' }}
-                    itemStyle={{ padding: '0', margin: '0', color: '#333' }} // Darker text for readability
+                    itemStyle={{ padding: '0', margin: '0', color: '#333' }}
                   />
                   <Legend
                     iconType="circle"
                     layout="horizontal"
                     align="center"
                     verticalAlign="bottom"
-                    wrapperStyle={{ paddingTop: '15px', fontSize: '14px', color: '#555' }} // Darker text
+                    wrapperStyle={{ paddingTop: '15px', fontSize: '14px', color: '#555' }}
                   />
                 </PieChart>
               </ResponsiveContainer>
@@ -254,35 +251,55 @@ const TableauDeBord = () => {
           {/* Total counts below the chart with icons */}
           <div className="mt-4 flex justify-around w-full text-center text-gray-700">
             <div className="flex flex-col items-center">
-              <Users className="w-7 h-7 text-indigo-600 mb-1" /> {/* Larger icon */}
-              <span className="font-bold text-xl">{genderData[0].value}</span> {/* Larger value */}
+              <Users className="w-7 h-7 text-indigo-600 mb-1" />
+              <span className="font-bold text-xl">{genderData[0].value}</span>
               <span className="text-sm">Garçons</span>
             </div>
             <div className="flex flex-col items-center">
-              <Users className="w-7 h-7 text-pink-600 mb-1" /> {/* Larger icon */}
-              <span className="font-bold text-xl">{genderData[1].value}</span> {/* Larger value */}
+              <Users className="w-7 h-7 text-pink-600 mb-1" />
+              <span className="font-bold text-xl">{genderData[1].value}</span>
               <span className="text-sm">Filles</span>
             </div>
           </div>
         </Card>
 
-        {/* Financial Evolution Chart */}
-        <Card className="p-6 shadow-xl border border-gray-100 rounded-2xl bg-white">
-          <h2 className="text-xl font-bold text-gray-800 mb-6">Évolution Financière (Paiements vs Dépenses)</h2>
+        {/* New: Payments Evolution Chart */}
+        <Card className="lg:col-span-1 p-6 shadow-xl border border-gray-100 rounded-2xl bg-white">
+          <h2 className="text-xl font-bold text-gray-800 mb-6">Évolution des Paiements</h2>
           <div style={{ width: '100%', height: '280px' }}>
             {hasMounted && (
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart
+                <LineChart
                   data={financialData}
                   margin={{ top: 20, right: 10, left: 0, bottom: 5 }}
                 >
-                  <XAxis dataKey="name" stroke="#cbd5e1" tick={{ fontSize: 12, fill: '#6b7280' }} /> {/* Darker tick color */}
+                  <XAxis dataKey="name" stroke="#cbd5e1" tick={{ fontSize: 12, fill: '#6b7280' }} />
                   <YAxis stroke="#cbd5e1" tickFormatter={(value) => `${(value / 1000).toLocaleString('fr-FR')}K FCFA`} tick={{ fontSize: 12, fill: '#6b7280' }} />
-                  <Tooltip cursor={{ fill: 'rgba(0,0,0,0.05)' }} formatter={(value) => [`${value.toLocaleString('fr-FR')} FCFA`, 'Montant']} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0px 0px 10px rgba(0,0,0,0.1)' }} itemStyle={{ color: '#333' }} labelStyle={{ color: '#666' }} /> {/* Nicer tooltip style, fixed itemStyle */}
-                  <Legend wrapperStyle={{ paddingTop: '20px', fontSize: '14px', color: '#555' }} /> {/* Darker text */}
-                  <Bar dataKey="Paiements" fill="#22C55E" name="Paiements encaissés" radius={[10, 10, 0, 0]} /> {/* Brighter green */}
-                  <Bar dataKey="Dépenses" fill="#EF4444" name="Dépenses effectuées" radius={[10, 10, 0, 0]} /> {/* Consistent red */}
-                </BarChart>
+                  <Tooltip cursor={{ fill: 'rgba(0,0,0,0.05)' }} formatter={(value) => `${value.toLocaleString('fr-FR')} FCFA`} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0px 0px 10px rgba(0,0,0,0.1)' }} itemStyle={{ color: '#333' }} labelStyle={{ color: '#666' }} />
+                  <Legend wrapperStyle={{ paddingTop: '20px', fontSize: '14px', color: '#555' }} />
+                  <Line type="monotone" dataKey="Paiements" stroke="#22C55E" strokeWidth={3} dot={{ r: 5 }} activeDot={{ r: 8 }} name="Montant encaissé" /> {/* Brighter green line */}
+                </LineChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+        </Card>
+
+        {/* New: Expenses Evolution Chart */}
+        <Card className="lg:col-span-1 p-6 shadow-xl border border-gray-100 rounded-2xl bg-white">
+          <h2 className="text-xl font-bold text-gray-800 mb-6">Évolution des Dépenses</h2>
+          <div style={{ width: '100%', height: '280px' }}>
+            {hasMounted && (
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart
+                  data={financialData}
+                  margin={{ top: 20, right: 10, left: 0, bottom: 5 }}
+                >
+                  <XAxis dataKey="name" stroke="#cbd5e1" tick={{ fontSize: 12, fill: '#6b7280' }} />
+                  <YAxis stroke="#cbd5e1" tickFormatter={(value) => `${(value / 1000).toLocaleString('fr-FR')}K FCFA`} tick={{ fontSize: 12, fill: '#6b7280' }} />
+                  <Tooltip cursor={{ fill: 'rgba(0,0,0,0.05)' }} formatter={(value) => `${value.toLocaleString('fr-FR')} FCFA`} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0px 0px 10px rgba(0,0,0,0.1)' }} itemStyle={{ color: '#333' }} labelStyle={{ color: '#666' }} />
+                  <Legend wrapperStyle={{ paddingTop: '20px', fontSize: '14px', color: '#555' }} />
+                  <Line type="monotone" dataKey="Dépenses" stroke="#EF4444" strokeWidth={3} dot={{ r: 5 }} activeDot={{ r: 8 }} name="Montant dépensé" /> {/* Consistent red line */}
+                </LineChart>
               </ResponsiveContainer>
             )}
           </div>
