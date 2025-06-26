@@ -57,7 +57,7 @@ export const eleves = [
     nom: 'Ndiaye',
     prenom: 'Lucas',
     dateNaissance: '2008-03-15',
-    sexe: 'M',
+    sexe: 'M', // Ajout du sexe pour la répartition G/F
     classeId: 1, // ID de la classe
     parentIds: [3], // ID du parent
     telephone: '784567890',
@@ -70,7 +70,7 @@ export const eleves = [
     prenom: 'Mariama', // Prénom sénégalais
     dateNaissance: '2010-07-22',
     classeId: 2, // ID de la classe
-    sexe: 'F',
+    sexe: 'F', // Ajout du sexe
     parentIds: [3],
     telephone: '776789012',
     email: 'mariama@ecole.sn',
@@ -81,13 +81,37 @@ export const eleves = [
     nom: 'Fall',
     prenom: 'Omar', // Prénom sénégalais
     dateNaissance: '2009-01-10',
-    sexe: 'M',
+    sexe: 'M', // Ajout du sexe
     classeId: 1,
     parentIds: [], // Pas de parent enregistré dans ce jeu de données
     telephone: '707890123',
     email: 'omar@ecole.sn',
     adresse: 'Lot 123, Cité Fadia, Pikine' // Autre localisation
-  }
+  },
+  { // Nouvel élève pour diversifier les données
+    id: 4,
+    nom: 'Gueye',
+    prenom: 'Fatou',
+    dateNaissance: '2007-11-01',
+    sexe: 'F',
+    classeId: 1,
+    parentIds: [],
+    telephone: '771112233',
+    email: 'fatou.gueye@ecole.sn',
+    adresse: 'Cité Keur Gorgui, Dakar'
+  },
+  {
+    id: 5,
+    nom: 'Mbaye',
+    prenom: 'Cheikh',
+    dateNaissance: '2011-02-28',
+    sexe: 'M',
+    classeId: 2,
+    parentIds: [],
+    telephone: '704445566',
+    email: 'cheikh.mbaye@ecole.sn',
+    adresse: 'Grand Yoff, Dakar'
+  },
 ];
 
 export const enseignants = [
@@ -108,6 +132,15 @@ export const enseignants = [
     telephone: '778901234',
     matieres: [3, 4],
     classes: [2, 3]
+  },
+  { // Nouvel enseignant
+    id: 7,
+    nom: 'Sarr',
+    prenom: 'Modou',
+    email: 'modou.sarr@ecole.sn',
+    telephone: '769998877',
+    matieres: [1],
+    classes: [1, 3]
   }
 ];
 
@@ -117,7 +150,7 @@ export const classes = [
     nom: 'Terminale S1', // Nom de classe plus réaliste
     niveau: 'Terminale',
     enseignantPrincipal: 2, // ID de l'enseignant principal
-    nombreEleves: 35,
+    nombreEleves: 35, // mis à jour
     salle: 'Salle A'
   },
   {
@@ -125,7 +158,7 @@ export const classes = [
     nom: 'Première L2',
     niveau: 'Première',
     enseignantPrincipal: 6,
-    nombreEleves: 30,
+    nombreEleves: 30, // mis à jour
     salle: 'Salle B'
   },
   {
@@ -133,7 +166,7 @@ export const classes = [
     nom: 'Seconde S',
     niveau: 'Seconde',
     enseignantPrincipal: 6,
-    nombreEleves: 40,
+    nombreEleves: 40, // mis à jour
     salle: 'Salle C'
   }
 ];
@@ -245,7 +278,7 @@ export const paiements = [
   {
     id: 1,
     eleveId: 1, // Lucas Ndiaye
-    montant: 25000.00, // Montant en FCFA
+    montant: 25000, // Montant en FCFA
     type: 'Frais de scolarité',
     statut: 'Payé',
     date: '2025-01-05',
@@ -257,7 +290,7 @@ export const paiements = [
   {
     id: 2,
     eleveId: 2, // Mariama Ndiaye
-    montant: 15000.00,
+    montant: 15000,
     type: 'Cotisation APEL', // Association des Parents d'Élèves
     statut: 'En attente',
     date: '2025-06-01', // Date future pour 'En attente'
@@ -269,7 +302,7 @@ export const paiements = [
   {
     id: 3,
     eleveId: 1, // Lucas Ndiaye
-    montant: 5000.00,
+    montant: 5000,
     type: 'Activité sportive',
     statut: 'En retard', // Statut en retard
     date: '2025-04-10',
@@ -281,7 +314,7 @@ export const paiements = [
   {
     id: 4,
     eleveId: 3, // Omar Fall
-    montant: 30000.00,
+    montant: 30000,
     type: 'Frais de scolarité',
     statut: 'Payé',
     date: '2025-01-20',
@@ -289,8 +322,102 @@ export const paiements = [
     description: 'Paiement du premier trimestre',
     reference: 'VB20250120OFL1',
     dateEcheance: '2025-01-25'
+  },
+  {
+    id: 5,
+    eleveId: 4, // Fatou Gueye
+    montant: 25000,
+    type: 'Frais de scolarité',
+    statut: 'Payé',
+    date: '2025-02-10',
+    methode: 'Virement bancaire',
+    description: 'Paiement premier trimestre',
+    reference: 'VB20250210FGY1',
+    dateEcheance: '2025-02-15'
+  },
+  {
+    id: 6,
+    eleveId: 5, // Cheikh Mbaye
+    montant: 20000,
+    type: 'Frais de scolarité',
+    statut: 'En attente',
+    date: '2025-03-05',
+    methode: 'Espèces',
+    description: 'Paiement deuxième trimestre',
+    reference: 'ES20250305CMB1',
+    dateEcheance: '2025-03-15'
+  },
+  {
+    id: 7,
+    eleveId: 1, // Lucas Ndiaye
+    montant: 10000,
+    type: 'Contribution voyage scolaire',
+    statut: 'Payé',
+    date: '2025-06-15',
+    methode: 'Wave',
+    description: 'Contribution pour le voyage à Saint-Louis',
+    reference: 'WV20250615LND2',
+    dateEcheance: '2025-06-20'
+  },
+  {
+    id: 8,
+    eleveId: 3, // Omar Fall
+    montant: 8000,
+    type: 'Achats fournitures',
+    statut: 'En attente',
+    date: '2025-06-20',
+    methode: 'Orange Money',
+    description: 'Achat de livres et cahiers',
+    reference: 'OM20250620OFL2',
+    dateEcheance: '2025-06-27'
   }
 ];
+
+export const depenses = [ // Nouvel ensemble de données pour les dépenses
+  {
+    id: 1,
+    description: 'Salaires enseignants',
+    montant: 1500000,
+    date: '2025-05-30',
+    categorie: 'Personnel'
+  },
+  {
+    id: 2,
+    description: 'Achat de fournitures de bureau',
+    montant: 75000,
+    date: '2025-05-15',
+    categorie: 'Fournitures'
+  },
+  {
+    id: 3,
+    description: 'Facture d\'électricité (Juin)',
+    montant: 120000,
+    date: '2025-06-10',
+    categorie: 'Charges fixes'
+  },
+  {
+    id: 4,
+    description: 'Maintenance des climatiseurs',
+    montant: 50000,
+    date: '2025-06-05',
+    categorie: 'Maintenance'
+  },
+  {
+    id: 5,
+    description: 'Internet et Téléphone (Juin)',
+    montant: 40000,
+    date: '2025-06-12',
+    categorie: 'Charges fixes'
+  },
+  {
+    id: 6,
+    description: 'Achat de matériel sportif',
+    montant: 90000,
+    date: '2025-05-25',
+    categorie: 'Fournitures'
+  }
+];
+
 
 export const evenements = [
   {
