@@ -38,6 +38,8 @@ import MesEnfants from './pages/parent/MesEnfants';
 // Pages Comptable
 import GestionDepenses from "./pages/admin/Depenses";
 import GestionPresencesAdmin from './pages/admin/GestionPresences';
+import ParametresAdmin from "./pages/admin/Parametre";
+import ProfilEleve from "./pages/admin/ProfilEleve";
 import Recus from './pages/comptable/Recus';
 import StatistiquesPaiements from './pages/comptable/Statistiques';
 import TableauDeBordComptable from './pages/comptable/TableauDebord';
@@ -66,6 +68,11 @@ function App() {
                 <TableauDeBord />
               </ProtectedRoute>
             } />
+            <Route path="admin/parametres" element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <ParametresAdmin />
+              </ProtectedRoute>
+            } />
             <Route path="admin/gestion-utilisateurs" element={
               <ProtectedRoute allowedRoles={['admin']}>
                 <GestionUtilisateurs />
@@ -74,6 +81,11 @@ function App() {
             <Route path="admin/eleves" element={
               <ProtectedRoute allowedRoles={['admin']}>
                 <Eleves />
+              </ProtectedRoute>
+            } />
+            <Route path="admin/eleves/profil/:eleveId" element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <ProfilEleve />
               </ProtectedRoute>
             } />
             <Route path="admin/enseignants" element={

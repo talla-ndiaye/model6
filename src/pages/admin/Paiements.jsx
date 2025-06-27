@@ -8,9 +8,8 @@ import Table from '../../components/ui/Table';
 import { classes, eleves, paiements } from '../../data/donneesTemporaires';
 
 const Paiements = () => {
-  const [payments, setPayments] = useState(paiements);
+  const [payments, setPayments] = useState(paiements); // Still need setPayments if other actions are added later, or to simulate data updates
   const [filterStatut, setFilterStatut] = useState('');
-  // const [filterType, setFilterType] = useState(''); // Removed filterType state
   const [filterPeriod, setFilterPeriod] = useState('');
   const [filterClass, setFilterClass] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
@@ -29,6 +28,8 @@ const Paiements = () => {
     return classe ? classe.nom : 'Classe inconnue';
   };
 
+  // The updatePaymentStatus function is no longer called, but kept if you might re-enable it or use it for other internal logic.
+  // If not, it can be fully removed.
   const updatePaymentStatus = (paymentId, newStatut) => {
     setPayments(prevPayments => prevPayments.map(payment =>
       payment.id === paymentId ? { ...payment, statut: newStatut } : payment
@@ -51,6 +52,8 @@ const Paiements = () => {
   const isDateInPeriod = (paymentDateString, period) => {
     const paymentDate = new Date(paymentDateString);
     const now = new Date();
+    // Reset time for accurate date comparison (today, this_week)
+    now.setHours(0,0,0,0); 
 
     switch (period) {
       case 'today':
@@ -94,9 +97,8 @@ const Paiements = () => {
         getEleveName(payment.eleveId).toLowerCase().includes(lowerCaseSearchTerm)
       );
     }
-    // filterType is removed from here
     return currentPayments;
-  }, [payments, filterStatut, filterPeriod, filterClass, searchTerm]); // Removed filterType from dependencies
+  }, [payments, filterStatut, filterPeriod, filterClass, searchTerm]);
 
   // --- Statistics Calculation ---
   const stats = useMemo(() => {
@@ -125,7 +127,7 @@ const Paiements = () => {
       }
     },
     {
-      header: 'Type', // Keep 'Type' column in table, but remove filter option
+      header: 'Type',
       accessor: 'type',
       render: (payment) => (
         <span className={`px-2 py-1 text-xs rounded-full ${
@@ -171,16 +173,7 @@ const Paiements = () => {
       accessor: 'actions',
       render: (payment) => (
         <div className="flex space-x-2">
-          {payment.statut !== 'Payé' && (
-            <Button
-              size="sm"
-              variant="success"
-              onClick={() => updatePaymentStatus(payment.id, 'Payé')}
-              className="px-3 py-1 text-xs"
-            >
-              Marquer payé
-            </Button>
-          )}
+          {/* Removed "Marquer payé" button */}
           <Button
             size="sm"
             variant="outline"
@@ -196,7 +189,6 @@ const Paiements = () => {
   ];
 
   // --- Unique filter options for dropdowns ---
-  // uniquePaymentTypes is no longer needed for the filter dropdown
   const uniqueClasses = useMemo(() => {
     const classIdsWithPayments = new Set(paiements.map(p => eleves.find(e => e.id === p.eleveId)?.classeId).filter(Boolean));
     const classesWithPayments = classes.filter(c => classIdsWithPayments.has(c.id));
@@ -373,11 +365,7 @@ const Paiements = () => {
               <p><span className="font-medium">Référence:</span> {selectedPaymentDetails.reference}</p>
             )}
             <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
-              {selectedPaymentDetails.statut !== 'Payé' && (
-                <Button variant="success" onClick={() => { updatePaymentStatus(selectedPaymentDetails.id, 'Payé'); closeDetailsModal(); }}>
-                  Marquer comme payé
-                </Button>
-              )}
+              {/* Removed "Marquer comme payé" button from here too */}
               <Button variant="outline" onClick={closeDetailsModal}>Fermer</Button>
             </div>
           </div>

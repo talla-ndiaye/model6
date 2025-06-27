@@ -1,5 +1,6 @@
-import { BookOpen, CalendarDays, Edit, Eye, Home, Mail, Phone, Plus, Search, Trash2, User } from 'lucide-react'; // 'UserFemale' removed from import. User is kept for generic.
+import { BookOpen, CalendarDays, Edit, Eye, Home, Mail, Phone, Plus, Search, Trash2, User } from 'lucide-react';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import InputField from '../../components/ui/InputField';
@@ -16,6 +17,8 @@ const Eleves = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterClasse, setFilterClasse] = useState('');
   const [filterSexe, setFilterSexe] = useState('');
+
+  const navigate = useNavigate(); // Initialize useNavigate hook
 
   const [formData, setFormData] = useState({
     nom: '',
@@ -86,7 +89,7 @@ const Eleves = () => {
     } else {
       const newStudent = {
         ...studentData,
-        id: Math.max(...students.map(s => s.id)) + 1,
+        id: Math.max(...students.map(s => s.id)) + 1, // Ensure ID is unique and increments
       };
       console.log('Ajout élève:', newStudent);
       setStudents([...students, newStudent]);
@@ -108,7 +111,7 @@ const Eleves = () => {
       sexe: student.sexe || '',
       parentIds: student.parentIds?.map(String) || []
     });
-    setShowDetailModal(false);
+    setShowDetailModal(false); // Close detail modal before opening edit modal
     setShowModal(true);
   };
 
@@ -121,8 +124,13 @@ const Eleves = () => {
     if (window.confirm(`Êtes-vous sûr de vouloir supprimer ${student.prenom} ${student.nom} ?`)) {
       console.log('Suppression élève:', student);
       setStudents(students.filter(s => s.id !== student.id));
-      setShowDetailModal(false);
+      setShowDetailModal(false); // Close detail modal after deletion
     }
+  };
+
+  const handleViewProfile = (studentId) => {
+    setShowDetailModal(false); // Close the current modal
+    navigate(`profil/${studentId}`); // Navigate to the profile page
   };
 
   const resetForm = () => {
@@ -296,7 +304,7 @@ const Eleves = () => {
             onChange={(e) => setFormData({...formData, dateNaissance: e.target.value})}
             required
           />
-          
+
           <InputField
             label="Sexe"
             type="select"
@@ -473,6 +481,14 @@ const Eleves = () => {
               </Button>
               <Button variant="danger" onClick={() => handleDelete(selectedStudent)} icon={Trash2}>
                 Supprimer
+              </Button>
+              {/* New Button: Voir profil complet */}
+              <Button
+                variant="primary" // Or another suitable variant
+                onClick={() => handleViewProfile(selectedStudent.id)}
+                icon={Eye}
+              >
+                Voir profil complet
               </Button>
             </div>
           </div>

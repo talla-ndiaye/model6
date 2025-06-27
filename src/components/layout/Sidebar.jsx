@@ -7,6 +7,7 @@ import {
   FileText,
   GraduationCap,
   LayoutDashboard,
+  LogOut,
   Receipt,
   ReceiptIcon,
   Upload,
@@ -18,24 +19,24 @@ import { NavLink } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
 const Sidebar = ({ isOpen, onClose }) => {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
 
   const getMenuItems = () => {
     switch (user?.role) {
       case 'admin':
         return [
           { icon: LayoutDashboard, label: 'Tableau de bord', path: '/admin/tableau-de-bord' },
-          { icon: Users, label: 'Gestion utilisateurs', path: '/admin/gestion-utilisateurs' },
           { icon: GraduationCap, label: 'Élèves', path: '/admin/eleves' },
           { icon: UserCheck, label: 'Enseignants', path: '/admin/enseignants' },
           { icon: BookOpen, label: 'Classes', path: '/admin/classes' },
           { icon: FileText, label: 'Matières', path: '/admin/matieres' },
-          { icon: Users, label: 'Gestions Présences', path: '/admin/presences' },
           { icon: Calendar, label: 'Emplois du temps', path: '/admin/emplois-du-temps' },
+          { icon: Users, label: 'Absences-Retards-Renvois', path: '/admin/presences' },
           { icon: FileBarChart, label: 'Notes & Bulletins', path: '/admin/notes-bulletins' },
           { icon: CreditCard, label: 'Paiements', path: '/admin/paiements' },
           { icon: BadgeCent , label: 'Depenses', path: '/admin/depenses' },
-          { icon: Upload, label: 'Import élèves', path: '/admin/import-eleves' }
+          { icon: Upload, label: 'Import élèves', path: '/admin/import-eleves' },
+          { icon: Users, label: 'Gestion utilisateurs', path: '/admin/gestion-utilisateurs' },
         ];
 
       case 'enseignant':
@@ -45,7 +46,6 @@ const Sidebar = ({ isOpen, onClose }) => {
           { icon: Calendar, label: 'Emploi du temps', path: '/enseignant/emploi-du-temps' },
           { icon: FileBarChart, label: 'Gestion notes', path: '/enseignant/gestion-notes' },
           { icon: Users, label: 'Gestions Présences', path: '/enseignant/presences' },
-
         ];
 
       case 'eleve':
@@ -68,7 +68,6 @@ const Sidebar = ({ isOpen, onClose }) => {
           { icon: LayoutDashboard, label: 'Tableau de bord', path: '/comptable/tableau-de-bord' },
           { icon: Receipt, label: 'Paiements', path: '/comptable/paiements' },
           { icon: ReceiptIcon, label: 'statistiques', path: '/comptable/statistiques' },
-          
         ];
 
       default:
@@ -80,10 +79,10 @@ const Sidebar = ({ isOpen, onClose }) => {
 
   const getRoleGradient = (role) => {
     const gradients = {
-      admin: 'from-blue-500 to-blue-600', // Changed from fleuve to blue
-      enseignant: 'from-blue-500 to-blue-600', // Changed from fleuve to blue
-      parent: 'from-blue-500 to-blue-600', // Changed from fleuve to blue
-      eleve: 'from-blue-500 to-blue-600', // Changed from fleuve to blue
+      admin: 'from-blue-500 to-blue-600',
+      enseignant: 'from-blue-500 to-blue-600',
+      parent: 'from-blue-500 to-blue-600',
+      eleve: 'from-blue-500 to-blue-600',
       comptable: 'from-gray-500 to-gray-600'
     };
     return gradients[role] || 'from-gray-500 to-gray-600';
@@ -139,7 +138,7 @@ const Sidebar = ({ isOpen, onClose }) => {
                   className={({ isActive }) =>
                     `flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                       isActive
-                        ? 'bg-blue-50 text-blue-700 shadow-sm border-r-2 border-blue-500' // Consistent blue active state
+                        ? 'bg-blue-50 text-blue-700 shadow-sm border-r-2 border-blue-500'
                         : 'text-gray-700 hover:bg-gray-100'
                     }`
                   }
@@ -147,7 +146,7 @@ const Sidebar = ({ isOpen, onClose }) => {
                   {({ isActive }) => (
                     <>
                       <item.icon className={`w-5 h-5 transition-colors ${
-                        isActive ? 'text-blue-600' : 'text-gray-500 group-hover:text-blue-700' // Neutral gray for inactive, blue for active/hover
+                        isActive ? 'text-blue-600' : 'text-gray-500 group-hover:text-blue-700'
                       }`} />
                       <span className="text-sm font-medium">{item.label}</span>
                     </>
@@ -158,23 +157,16 @@ const Sidebar = ({ isOpen, onClose }) => {
           </ul>
         </nav>
 
-        {/* Footer sidebar */}
-        <div className="p-4 sm:p-6 border-t border-blue-100"> {/* Consistent blue border */}
-          <div className="bg-gradient-to-r from-blue-50 to-blue-400 rounded-xl p-4 border border-blue-100"> {/* Consistent blue gradient and border */}
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center"> {/* Consistent blue background */}
-                <span className="text-white text-sm font-bold">
-                  {user?.prenom?.charAt(0)}{user?.nom?.charAt(0)}
-                </span>
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 truncate">
-                  {user?.prenom} {user?.nom}
-                </p>
-                <p className="text-xs text-gray-500 truncate">{user?.email}</p>
-              </div>
-            </div>
-          </div>
+        {/* Footer sidebar - Only Logout Button */}
+        <div className="p-4 sm:p-6 border-t border-blue-100">
+          
+            <button 
+              onClick={logout}
+              className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-white bg-fleuve-600 rounded-lg hover:bg-red-700 transition-colors shadow-md"
+            >
+              <LogOut className="w-4 h-4" />
+              Déconnexion
+            </button>
         </div>
       </aside>
     </>
