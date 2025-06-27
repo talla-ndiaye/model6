@@ -9,7 +9,6 @@ import RedirectToDashboard from './routes/RedirectToDashboard';
 
 // Pages publiques
 import Connexion from './pages/Connexion';
-
 // Pages Admin
 import Classes from './pages/admin/Classes';
 import GestionDepenses from "./pages/admin/Depenses";
@@ -27,6 +26,7 @@ import ProfilEleve from "./pages/admin/ProfilEleve";
 import TableauDeBord from './pages/admin/TableauDeBord';
 
 // Pages Enseignant
+import GestionEvaluations from "./pages/admin/Evaluations";
 import EmploiDuTempsEnseignant from './pages/enseignant/EmploiDuTemps';
 import GestionNotes from './pages/enseignant/GestionNotes';
 import GestionPresences from './pages/enseignant/GestionPresences';
@@ -45,6 +45,7 @@ import HistoriquePaiementsParent from "./pages/parent/Paiements";
 import PresencesEnfants from './pages/parent/PresencesEnfants';
 
 // Pages Comptable
+
 import Recus from './pages/comptable/Recus';
 import StatistiquesPaiements from './pages/comptable/Statistiques';
 import TableauDeBordComptable from './pages/comptable/TableauDebord';
@@ -79,9 +80,10 @@ function App() {
             <Route path="admin/emplois-du-temps" element={<EmploisDuTemps />} />
             <Route path="admin/notes-bulletins" element={<NotesBulletins />} />
             <Route path="admin/paiements" element={<Paiements />} />
-            <Route path="admin/import-eleves" element={<ImportEleves />} />
+            <Route path="admin/import-eleves/classe/:classeId" element={<ImportEleves />} />
             <Route path="admin/presences" element={<GestionPresencesAdmin />} />
             <Route path="admin/depenses" element={<GestionDepenses />} />
+            <Route path="admin/evaluations" element={<GestionEvaluations />} />
 
             {/* Routes Enseignant */}
             <Route path="enseignant/tableau-de-bord" element={<TableauDeBordEnseignant />} />
@@ -106,8 +108,10 @@ function App() {
             {/* Routes Comptable */}
             <Route path="comptable/tableau-de-bord" element={<TableauDeBordComptable />} />
             <Route path="comptable/paiements" element={<Recus />} />
-            <Route path="comptable/statistiques" element={<StatistiquesPaiements />} />
+            <Route path="comptable/statistiques" element={<StatistiquesPaiements />} />{/* Redirection dynamique selon le rôle */}
+          
           </Route>
+          
         </Routes>
       </Router>
     </AuthProvider>

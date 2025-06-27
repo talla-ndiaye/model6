@@ -10,7 +10,6 @@ import {
   LogOut,
   Receipt,
   ReceiptIcon,
-  Upload,
   UserCheck,
   Users,
   X
@@ -35,7 +34,6 @@ const Sidebar = ({ isOpen, onClose }) => {
           { icon: FileBarChart, label: 'Notes & Bulletins', path: '/admin/notes-bulletins' },
           { icon: CreditCard, label: 'Paiements', path: '/admin/paiements' },
           { icon: BadgeCent , label: 'Depenses', path: '/admin/depenses' },
-          { icon: Upload, label: 'Import élèves', path: '/admin/import-eleves' },
           { icon: Users, label: 'Gestion utilisateurs', path: '/admin/gestion-utilisateurs' },
         ];
 

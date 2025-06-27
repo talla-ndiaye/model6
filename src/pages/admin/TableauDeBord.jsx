@@ -180,11 +180,11 @@ const TableauDeBord = () => {
                  <div className="flex items-start justify-between mb-4">
                     <div className="flex-1">
                       <p className="text-sm text-gray-600 mb-1 font-medium">{stat.title}</p>
-                      <p className="text-3xl font-extrabold text-gray-900 leading-tight">{stat.value}</p>
+                      <p className="text-xl font-extrabold text-gray-900 leading-tight">{stat.value}</p>
                     </div>
 
                     {/* Icon centered in colored circle */}
-                    <div className={`w-10 h-10 flex items-center justify-center rounded-full text-white ${stat.color} shadow-lg hidden sm:flex`}>
+                    <div className={`w-10 h-10 flex items-center justify-center rounded-full text-white ${stat.color} shadow-lg `}>
                       <stat.icon className="w-5 h-5" />
                     </div>
                   </div>

@@ -1,18 +1,22 @@
-import { Edit, Plus, Search, Trash2, Users } from 'lucide-react'; // Added Search icon
+import { Edit, Plus, Search, Trash2, Upload, Users } from 'lucide-react'; // Added Upload icon
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import InputField from '../../components/ui/InputField';
 import Modal from '../../components/ui/Modal';
 import Table from '../../components/ui/Table';
-import { classes, enseignants } from '../../data/donneesTemporaires';
+import { classes, enseignants } from '../../data/donneesTemporaires'; // Ensure utilisateurs is imported for parent info
 
 const Classes = () => {
   const [classrooms, setClassrooms] = useState(classes);
   const [showModal, setShowModal] = useState(false);
   const [editingClass, setEditingClass] = useState(null);
-  const [searchTerm, setSearchTerm] = useState(''); // New state for search term
-  const [filterNiveau, setFilterNiveau] = useState(''); // New state for niveau filter
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterNiveau, setFilterNiveau] = useState('');
+  
+  const navigate = useNavigate(); // Initialize useNavigate hook
+
   const [formData, setFormData] = useState({
     nom: '',
     niveau: '',
@@ -21,12 +25,13 @@ const Classes = () => {
     salle: ''
   });
 
-  const niveaux = ['6ème', '5ème', '4ème', '3ème'];
+  // Unique levels from class data for filter dropdown
+  const niveaux = [...new Set(classes.map(c => c.niveau))].sort();
 
   // Filtered classrooms based on search and niveau
   const filteredClassrooms = classrooms.filter(classroom => {
     const matchesSearch = classroom.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          classroom.salle.toLowerCase().includes(searchTerm.toLowerCase()); // Search by name or room
+                          classroom.salle.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesNiveau = filterNiveau === '' || classroom.niveau === filterNiveau;
     return matchesSearch && matchesNiveau;
   });
@@ -42,7 +47,8 @@ const Classes = () => {
     const classData = {
       ...formData,
       enseignantPrincipal: parseInt(formData.enseignantPrincipal),
-      nombreEleves: parseInt(formData.nombreEleves)
+      // For new classes, nombreEleves starts at 0, otherwise use input
+      nombreEleves: editingClass ? parseInt(formData.nombreEleves) : 0, 
     };
 
     if (editingClass) {
@@ -53,7 +59,7 @@ const Classes = () => {
     } else {
       const newClass = {
         ...classData,
-        id: Math.max(...classrooms.map(c => c.id)) + 1
+        id: Math.max(...classrooms.map(c => c.id)) + 1 // Ensure unique ID
       };
       console.log('Ajout classe:', newClass);
       setClassrooms([...classrooms, newClass]);
@@ -68,18 +74,33 @@ const Classes = () => {
       nom: classroom.nom,
       niveau: classroom.niveau,
       enseignantPrincipal: classroom.enseignantPrincipal.toString(),
-      nombreEleves: classroom.nombreEleves.toString(),
+      nombreEleves: classroom.nombreEleves.toString(), // Keep current student count for editing
       salle: classroom.salle
     });
     setShowModal(true);
   };
 
   const handleDelete = (classroom) => {
-    if (window.confirm(`Êtes-vous sûr de vouloir supprimer la classe ${classroom.nom} ?`)) {
+    if (window.confirm(`Êtes-vous sûr de vouloir supprimer la classe ${classroom.nom} ? Cette action est irréversible et retirera tous les élèves associés à cette classe !`)) {
       console.log('Suppression classe:', classroom);
       setClassrooms(classrooms.filter(c => c.id !== classroom.id));
+      // In a real app, you'd also remove/reassign students from this class
     }
   };
+
+  const handleImportStudents = () => {
+    if (editingClass) {
+      // If editing an existing class, navigate to import page with class ID
+      navigate(`/admin/import-eleves/classe/${editingClass.id}`);
+    } else {
+      // If creating a new class, maybe prompt to create first or just navigate without pre-selection
+      alert("Veuillez d'abord créer la classe avant d'importer des élèves.");
+      // Alternatively, you could navigate directly, but the import page would need to handle "no class selected"
+      // navigate('/admin/import-eleves');
+    }
+    setShowModal(false); // Close the current modal
+  };
+
 
   const resetForm = () => {
     setFormData({
@@ -151,7 +172,7 @@ const Classes = () => {
       </div>
 
       <Card>
-        {/* Search and Filter Bar - NEW */}
+        {/* Search and Filter Bar */}
         <div className="flex flex-col sm:flex-row gap-4 mb-6">
           <div className="flex-1">
             <InputField
@@ -177,9 +198,10 @@ const Classes = () => {
           </div>
         </div>
 
-        <Table columns={columns} data={filteredClassrooms} /> {/* Use filtered data */}
+        <Table columns={columns} data={filteredClassrooms} />
       </Card>
 
+      {/* Modal d'ajout/modification */}
       <Modal
         isOpen={showModal}
         onClose={resetForm}
@@ -191,7 +213,7 @@ const Classes = () => {
             label="Nom de la classe"
             value={formData.nom}
             onChange={(e) => setFormData({...formData, nom: e.target.value})}
-            placeholder="ex: 3ème A"
+            placeholder="ex: Terminale S1"
             required
           />
 
@@ -233,13 +255,14 @@ const Classes = () => {
           </div>
 
           <InputField
-            label="Nombre d'élèves"
+            label="Nombre d'élèves (sera mis à jour automatiquement)"
             type="number"
             value={formData.nombreEleves}
-            onChange={(e) => setFormData({...formData, nombreEleves: e.target.value})}
-            min="1"
-            max="35"
-            required
+            onChange={(e) => setFormData({...formData, nombreEleves: e.target.value})} // Keep for editing existing class
+            min="0" // Allow 0 students initially
+            max="100" // Increased max for realism
+            disabled={!editingClass} // Disable if adding new class (count is 0 initially)
+            className={!editingClass ? 'bg-gray-100 cursor-not-allowed' : ''} // Style disabled state
           />
 
           <InputField
@@ -257,6 +280,15 @@ const Classes = () => {
             <Button type="submit">
               {editingClass ? 'Modifier' : 'Créer'}
             </Button>
+            {editingClass && ( // Only show import button if editing an existing class
+              <Button
+                variant="secondary" // Or another suitable variant
+                onClick={handleImportStudents}
+                icon={Upload}
+              >
+                Importer élèves
+              </Button>
+            )}
           </div>
         </form>
       </Modal>

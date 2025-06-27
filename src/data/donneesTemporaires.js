@@ -541,3 +541,59 @@ export const presences = [
     dateModification: '2025-06-23T18:00:00'
   },
 ];
+
+export const evaluations = [
+  {
+    id: 1,
+    matiereId: 1, // Mathématiques
+    classeId: 1, // Terminale S1
+    niveau: 'Terminale',
+    date: '2025-07-05',
+    heureDebut: '09:00',
+    heureFin: '11:00',
+    dureeHeures: 2, // <-- AJOUTÉ ICI
+    type: 'Composition Trimestrielle',
+    description: 'Composition de fin de 3ème trimestre',
+    enseignantId: 2, // Moussa Diallo
+  },
+  {
+    id: 2,
+    matiereId: 3, // SVT
+    classeId: 2, // Première L2
+    niveau: 'Première',
+    date: '2025-07-07',
+    heureDebut: '08:00',
+    heureFin: '11:00', // S'assure que l'heure de fin correspond à la durée (8h-11h = 3h)
+    dureeHeures: 3, // <-- AJOUTÉ ICI
+    type: 'Devoir Surveillé',
+    description: 'DS sur la génétique',
+    enseignantId: 6, // Khady Touré
+  },
+  {
+    id: 3,
+    matiereId: 2, // Français
+    classeId: 1, // Terminale S1
+    niveau: 'Terminale',
+    date: '2025-07-06',
+    heureDebut: '14:00',
+    heureFin: '18:00', // S'assure que l'heure de fin correspond à la durée (14h-18h = 4h)
+    dureeHeures: 4, // <-- AJOUTÉ ICI
+    type: 'Examen Blanc',
+    description: 'Examen blanc de préparation au Bac',
+    enseignantId: 9, // Ibrahima Gaye
+  },
+  {
+    id: 4,
+    matiereId: 4, // Anglais
+    classeId: 4, // 3ème C
+    niveau: '3ème',
+    date: '2025-07-08',
+    heureDebut: '10:00',
+    heureFin: '12:00', // S'assure que l'heure de fin correspond à la durée (10h-12h = 2h)
+    dureeHeures: 2, // <-- AJOUTÉ ICI
+    type: 'Interrogation Écrite',
+    description: 'Interro sur le présent simple',
+    enseignantId: 7, // Modou Sarr
+  },
+  // Ajoutez d'autres évaluations avec des durées variées
+];
