@@ -11,6 +11,7 @@ import RedirectToDashboard from './routes/RedirectToDashboard';
 import Connexion from './pages/Connexion';
 // Pages Admin
 import Classes from './pages/admin/Classes';
+import ClasseDetails from "./pages/admin/ClassesDetails";
 import GestionDepenses from "./pages/admin/Depenses";
 import Eleves from './pages/admin/Eleves';
 import EmploisDuTemps from './pages/admin/EmploisDuTemps';
@@ -24,6 +25,7 @@ import Paiements from './pages/admin/Paiements';
 import ParametresAdmin from "./pages/admin/Parametre";
 import ProfilEleve from "./pages/admin/ProfilEleve";
 import TableauDeBord from './pages/admin/TableauDeBord';
+
 
 // Pages Enseignant
 import GestionEvaluations from "./pages/admin/Evaluations";
@@ -55,13 +57,13 @@ function App() {
     <AuthProvider>
       <Router>
         <Routes>
-          {/* Redirection dynamique selon le rôle */}
+          {/* Redirection  selon le rôle */}
           <Route path="/" element={<RedirectToDashboard />} />
 
           {/* Route publique */}
           <Route path="/connexion" element={<Connexion />} />
 
-          {/* Routes protégées avec layout */}
+          {/* Touts mes composants seront enveloppés par le Dashbord */}
           <Route path="/*" element={
               <ProtectedRoute>
                 <DashboardLayout />
@@ -84,6 +86,8 @@ function App() {
             <Route path="admin/presences" element={<GestionPresencesAdmin />} />
             <Route path="admin/depenses" element={<GestionDepenses />} />
             <Route path="admin/evaluations" element={<GestionEvaluations />} />
+            <Route path="admin/classes/details/:id" element={<ClasseDetails />} />
+
 
             {/* Routes Enseignant */}
             <Route path="enseignant/tableau-de-bord" element={<TableauDeBordEnseignant />} />
@@ -108,7 +112,7 @@ function App() {
             {/* Routes Comptable */}
             <Route path="comptable/tableau-de-bord" element={<TableauDeBordComptable />} />
             <Route path="comptable/paiements" element={<Recus />} />
-            <Route path="comptable/statistiques" element={<StatistiquesPaiements />} />{/* Redirection dynamique selon le rôle */}
+            <Route path="comptable/statistiques" element={<StatistiquesPaiements />} />
           
           </Route>
           

@@ -6,16 +6,14 @@ import { classes, eleves, emploisDuTemps, enseignants, matieres } from '../../da
 const EmploiDuTempsEleve = () => {
   const { user } = useAuth();
 
-  // Récupérer l'élève et sa classe
-  // Ensure we find the student by user.id if available, otherwise by email as a fallback
+  
   const eleve = eleves.find(e => e.id === user?.id || e.email === user?.email);
   const maClasse = eleve ? classes.find(c => c.id === eleve.classeId) : null;
 
   // Harmonized jours and heures with other timetable pages
   const jours = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
   const heures = [
-    '08:00-09:00', '09:00-10:00', '10:00-11:00', '11:00-12:00',
-    '14:00-15:00', '15:00-16:00', '16:00-17:00', '17:00-18:00'
+    '08:00-10:00', '10:00-12:00', '12:00-14:00', '14:00-16:00','16:00-18:00'
   ];
 
   const getCoursForSlot = (jour, heure) => {

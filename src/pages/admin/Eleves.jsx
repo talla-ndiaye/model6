@@ -1,12 +1,12 @@
-import { BookOpen, CalendarDays, Edit, Eye, Home, Mail, Phone, Plus, Search, Trash2, User } from 'lucide-react';
+import { BadgeCheck, BookOpen, CalendarDays, Edit, Eye, Home, Mail, Phone, Plus, Search, Trash2, User } from 'lucide-react';
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom'; // Import useNavigate
+import { useNavigate } from 'react-router-dom';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import InputField from '../../components/ui/InputField';
 import Modal from '../../components/ui/Modal';
 import Table from '../../components/ui/Table';
-import { classes, eleves, utilisateurs } from '../../data/donneesTemporaires';
+import { classes, eleves, utilisateurs, } from '../../data/donneesTemporaires';
 
 const Eleves = () => {
   const [students, setStudents] = useState(eleves);
@@ -18,7 +18,8 @@ const Eleves = () => {
   const [filterClasse, setFilterClasse] = useState('');
   const [filterSexe, setFilterSexe] = useState('');
 
-  const navigate = useNavigate(); // Initialize useNavigate hook
+
+  const navigate = useNavigate(); 
 
   const [formData, setFormData] = useState({
     nom: '',
@@ -56,7 +57,9 @@ const Eleves = () => {
 
   const filteredStudents = students.filter(student => {
     const matchesSearch = student.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          student.prenom.toLowerCase().includes(searchTerm.toLowerCase());
+                          student.prenom.toLowerCase().includes(searchTerm.toLowerCase())||
+                          student.telephone.toLowerCase().includes(searchTerm.toLowerCase())||
+                          student.matricule.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesClasse = filterClasse === '' || student.classeId.toString() === filterClasse;
     const matchesSexe = filterSexe === '' || student.sexe === filterSexe;
 
@@ -89,7 +92,7 @@ const Eleves = () => {
     } else {
       const newStudent = {
         ...studentData,
-        id: Math.max(...students.map(s => s.id)) + 1, // Ensure ID is unique and increments
+        id: Math.max(...students.map(s => s.id)) + 1, 
       };
       console.log('Ajout élève:', newStudent);
       setStudents([...students, newStudent]);
@@ -111,7 +114,7 @@ const Eleves = () => {
       sexe: student.sexe || '',
       parentIds: student.parentIds?.map(String) || []
     });
-    setShowDetailModal(false); // Close detail modal before opening edit modal
+    setShowDetailModal(false); 
     setShowModal(true);
   };
 
@@ -124,13 +127,13 @@ const Eleves = () => {
     if (window.confirm(`Êtes-vous sûr de vouloir supprimer ${student.prenom} ${student.nom} ?`)) {
       console.log('Suppression élève:', student);
       setStudents(students.filter(s => s.id !== student.id));
-      setShowDetailModal(false); // Close detail modal after deletion
+      setShowDetailModal(false); 
     }
   };
 
   const handleViewProfile = (studentId) => {
-    setShowDetailModal(false); // Close the current modal
-    navigate(`profil/${studentId}`); // Navigate to the profile page
+    setShowDetailModal(false); 
+    navigate(`profil/${studentId}`);
   };
 
   const resetForm = () => {
@@ -221,14 +224,17 @@ const Eleves = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="block lg:flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Gestion des élèves</h1>
           <p className="text-gray-600">Gérer les informations des élèves</p>
         </div>
-        <Button onClick={() => setShowModal(true)} icon={Plus}>
+        <div className='row'>
+          <Button onClick={() => setShowModal(true)} icon={Plus} className='w-full'>
           Nouvel élève
         </Button>
+        </div>
+        
       </div>
 
       <Card>
@@ -370,7 +376,6 @@ const Eleves = () => {
           />
           <p className="text-xs text-gray-500 mt-1">Maintenez Ctrl/Cmd pour sélectionner plusieurs parents</p>
 
-
           <div className="flex justify-end space-x-3 pt-4">
             <Button variant="outline" onClick={resetForm}>
               Annuler
@@ -382,7 +387,7 @@ const Eleves = () => {
         </form>
       </Modal>
 
-      {/* Modal de détails - Amélioré */}
+      {/* Modal de détails */}
       <Modal
         isOpen={showDetailModal}
         onClose={() => setShowDetailModal(false)}
@@ -391,7 +396,7 @@ const Eleves = () => {
       >
         {selectedStudent && (
           <div className="space-y-6">
-            {/* Header section with Name and Avatar */}
+            {/* Header  */}
             <div className="flex items-center space-x-4 pb-4 border-b border-gray-200">
               <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-2xl font-bold uppercase">
                 {selectedStudent.prenom.charAt(0)}{selectedStudent.nom.charAt(0)}
@@ -404,7 +409,7 @@ const Eleves = () => {
               </div>
             </div>
 
-            {/* Personal Information Section */}
+            {/* infos*/}
             <div className="space-y-4">
               <h4 className="text-lg font-semibold text-gray-800">Informations Personnelles</h4>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -419,14 +424,19 @@ const Eleves = () => {
                   value={getClassName(selectedStudent.classeId)}
                 />
                 <DetailRow
-                  icon={selectedStudent.sexe === 'M' ? User : User} // Fallback to User if UserFemale not available
+                  icon={selectedStudent.sexe === 'M' ? User : User}
                   label="Sexe"
                   value={selectedStudent.sexe === 'M' ? 'Masculin' : selectedStudent.sexe === 'F' ? 'Féminin' : 'Non spécifié'}
+                />
+                <DetailRow
+                  icon={BadgeCheck}
+                  label="Matricule"
+                  value={(selectedStudent.matricule)}
                 />
               </div>
             </div>
 
-            {/* Contact Information Section */}
+            {/* Contact  */}
             <div className="space-y-4">
               <h4 className="text-lg font-semibold text-gray-800">Coordonnées Élève</h4>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -448,7 +458,7 @@ const Eleves = () => {
               </div>
             </div>
 
-            {/* Parent Information Section - NEW */}
+            {/* Parent Infos */}
             <div className="space-y-4">
               <h4 className="text-lg font-semibold text-gray-800">Informations Parentales</h4>
               {selectedStudent.parentIds && selectedStudent.parentIds.length > 0 ? (
@@ -470,8 +480,7 @@ const Eleves = () => {
               )}
             </div>
 
-
-            {/* Action buttons at the bottom of the modal */}
+            {/* Actions */}
             <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
               <Button variant="outline" onClick={() => setShowDetailModal(false)}>
                 Fermer
@@ -482,15 +491,16 @@ const Eleves = () => {
               <Button variant="danger" onClick={() => handleDelete(selectedStudent)} icon={Trash2}>
                 Supprimer
               </Button>
-              {/* New Button: Voir profil complet */}
+              
               <Button
-                variant="primary" // Or another suitable variant
+                variant="primary" 
                 onClick={() => handleViewProfile(selectedStudent.id)}
                 icon={Eye}
               >
                 Voir profil complet
               </Button>
             </div>
+            
           </div>
         )}
       </Modal>

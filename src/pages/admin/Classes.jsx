@@ -1,12 +1,12 @@
-import { Edit, Plus, Search, Trash2, Upload, Users } from 'lucide-react'; // Added Upload icon
+import { Edit, Eye, Plus, Search, Trash2, Upload, Users } from 'lucide-react'; // Added Upload icon
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom'; // Import useNavigate
+import { useNavigate } from 'react-router-dom';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import InputField from '../../components/ui/InputField';
 import Modal from '../../components/ui/Modal';
 import Table from '../../components/ui/Table';
-import { classes, enseignants } from '../../data/donneesTemporaires'; // Ensure utilisateurs is imported for parent info
+import { classes, enseignants } from '../../data/donneesTemporaires';
 
 const Classes = () => {
   const [classrooms, setClassrooms] = useState(classes);
@@ -15,7 +15,7 @@ const Classes = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterNiveau, setFilterNiveau] = useState('');
   
-  const navigate = useNavigate(); // Initialize useNavigate hook
+  const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
     nom: '',
@@ -25,10 +25,10 @@ const Classes = () => {
     salle: ''
   });
 
-  // Unique levels from class data for filter dropdown
-  const niveaux = [...new Set(classes.map(c => c.niveau))].sort();
+  
+  //const niveaux = [...new Set(classes.map(c => c.niveau))].sort();
+  const niveaux = ['6e','5e','4e','3e','2nd','1er','Tle'];
 
-  // Filtered classrooms based on search and niveau
   const filteredClassrooms = classrooms.filter(classroom => {
     const matchesSearch = classroom.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           classroom.salle.toLowerCase().includes(searchTerm.toLowerCase());
@@ -47,7 +47,6 @@ const Classes = () => {
     const classData = {
       ...formData,
       enseignantPrincipal: parseInt(formData.enseignantPrincipal),
-      // For new classes, nombreEleves starts at 0, otherwise use input
       nombreEleves: editingClass ? parseInt(formData.nombreEleves) : 0, 
     };
 
@@ -74,31 +73,19 @@ const Classes = () => {
       nom: classroom.nom,
       niveau: classroom.niveau,
       enseignantPrincipal: classroom.enseignantPrincipal.toString(),
-      nombreEleves: classroom.nombreEleves.toString(), // Keep current student count for editing
+      nombreEleves: classroom.nombreEleves.toString(), 
       salle: classroom.salle
     });
     setShowModal(true);
   };
 
-  const handleDelete = (classroom) => {
-    if (window.confirm(`Êtes-vous sûr de vouloir supprimer la classe ${classroom.nom} ? Cette action est irréversible et retirera tous les élèves associés à cette classe !`)) {
-      console.log('Suppression classe:', classroom);
-      setClassrooms(classrooms.filter(c => c.id !== classroom.id));
-      // In a real app, you'd also remove/reassign students from this class
-    }
-  };
+  
 
   const handleImportStudents = () => {
     if (editingClass) {
-      // If editing an existing class, navigate to import page with class ID
       navigate(`/admin/import-eleves/classe/${editingClass.id}`);
-    } else {
-      // If creating a new class, maybe prompt to create first or just navigate without pre-selection
-      alert("Veuillez d'abord créer la classe avant d'importer des élèves.");
-      // Alternatively, you could navigate directly, but the import page would need to handle "no class selected"
-      // navigate('/admin/import-eleves');
-    }
-    setShowModal(false); // Close the current modal
+    } 
+    setShowModal(false); 
   };
 
 
@@ -123,7 +110,7 @@ const Classes = () => {
       render: (classroom) => getEnseignantName(classroom.enseignantPrincipal)
     },
     {
-      header: 'Élèves',
+      header: 'Effectif',
       accessor: 'nombreEleves',
       render: (classroom) => (
         <div className="flex items-center">
@@ -141,6 +128,14 @@ const Classes = () => {
           <Button
             size="sm"
             variant="outline"
+            onClick={() => navigate(`./details/${classroom.id}`)}
+            icon={Eye}
+          >
+            Details
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
             onClick={() => handleEdit(classroom)}
             icon={Edit}
           >
@@ -149,7 +144,7 @@ const Classes = () => {
           <Button
             size="sm"
             variant="danger"
-            onClick={() => handleDelete(classroom)}
+            
             icon={Trash2}
           >
             Supprimer

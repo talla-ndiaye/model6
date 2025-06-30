@@ -1,11 +1,8 @@
 import {
-  ArrowLeft,
-  ArrowRight,
   BookOpen,
   Download,
   Edit,
   Eye,
-  Filter, // Icon for mobile filter button
   Mail,
   Phone,
   Plus,
@@ -16,7 +13,7 @@ import {
   Users
 } from 'lucide-react';
 import { useMemo, useState } from 'react';
-import Button from '../../components/ui/Button'; // Ensure Button is imported
+import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import InputField from '../../components/ui/InputField';
 import Modal from '../../components/ui/Modal';
@@ -24,8 +21,6 @@ import Table from '../../components/ui/Table';
 
 import { classes, enseignants as initialEnseignants, matieres } from '../../data/donneesTemporaires';
 
-
-// Helper component for detail rows in modals (reused from other components)
 const DetailRow = ({ icon: Icon, label, value }) => (
   <div className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg border border-gray-100">
     {Icon && <Icon className="w-5 h-5 text-blue-600 flex-shrink-0 mt-1" />}
@@ -36,40 +31,34 @@ const DetailRow = ({ icon: Icon, label, value }) => (
   </div>
 );
 
-
 const Enseignants = () => {
   const [enseignants, setEnseignants] = useState(initialEnseignants);
 
   const [rechercheTexte, setRechercheTexte] = useState('');
-  const [filtreMatiere, setFiltreMatiere] = useState('');
+  const [filtreMatiere, setFiltreMatiere] = useState(''); 
   const [filtreClasse, setFiltreClasse] = useState('');
-  const [ordreTri, setOrdreTri] = useState('nom_asc');
-  const [filtreModalOuvert, setFiltreModalOuvert] = useState(false);
 
   const [enseignantSelectionne, setEnseignantSelectionne] = useState(null);
   const [modalOuverte, setModalOuverte] = useState(false);
   const [typeModal, setTypeModal] = useState('');
 
-  // Helper function to get class names from IDs
   const getClasseNamesByIds = (classeIds) => {
     if (!classeIds || classeIds.length === 0) return 'Aucune';
     return classeIds.map(id => classes.find(c => c.id === id)?.nom).filter(Boolean).join(', ');
   };
 
-  // Function to handle filter changes and reset pagination
   const handleFilterChange = (setter, value) => {
-    setCurrentPage(1);
     setter(value);
   };
 
-  // Memoized filtered and sorted teachers
-  const enseignantsFiltresEtTries = useMemo(() => {
-    let tempEnseignants = enseignants.filter(enseignant => {
+  const enseignantsFiltres = useMemo(() => {
+    let EnseignantsTemporaire = enseignants.filter(enseignant => {
       const nomComplet = `${enseignant.prenom || ''} ${enseignant.nom || ''}`.toLowerCase();
       const correspondRecherche = nomComplet.includes(rechercheTexte.toLowerCase()) ||
-                                  enseignant.email?.toLowerCase().includes(rechercheTexte.toLowerCase());
+        enseignant.email?.toLowerCase().includes(rechercheTexte.toLowerCase()) ||
+        enseignant.telephone?.toLowerCase().includes(rechercheTexte.toLowerCase());
 
-      const correspondMatiere = !filtreMatiere || enseignant.matieres.some(matiereId => 
+      const correspondMatiere = !filtreMatiere || enseignant.matieres.some(matiereId =>
         matieres.find(m => m.id === matiereId)?.nom === filtreMatiere
       );
 
@@ -81,43 +70,9 @@ const Enseignants = () => {
       return correspondRecherche && correspondMatiere && correspondClasse;
     });
 
-    tempEnseignants.sort((a, b) => {
-      const nomA = a.nom.toLowerCase();
-      const prenomA = a.prenom.toLowerCase();
-      const nomB = b.nom.toLowerCase();
-      const prenomB = b.prenom.toLowerCase();
+    return EnseignantsTemporaire;
+  }, [enseignants, rechercheTexte, filtreMatiere, filtreClasse]);
 
-      if (ordreTri === 'nom_asc') {
-        return nomA.localeCompare(nomB);
-      } else if (ordreTri === 'nom_desc') {
-        return nomB.localeCompare(nomA);
-      } else if (ordreTri === 'prenom_asc') {
-        return prenomA.localeCompare(prenomB);
-      } else if (ordreTri === 'prenom_desc') {
-        return prenomB.localeCompare(prenomA);
-      }
-      return 0;
-    });
-
-    return tempEnseignants;
-  }, [enseignants, rechercheTexte, filtreMatiere, filtreClasse, ordreTri, classes, matieres]);
-
-  // Pagination states and logic
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
-  const totalPages = Math.ceil(enseignantsFiltresEtTries.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const currentEnseignants = enseignantsFiltresEtTries.slice(startIndex, startIndex + itemsPerPage);
-
-  const goToNextPage = () => {
-    setCurrentPage(prev => Math.min(prev + 1, totalPages));
-  };
-
-  const goToPreviousPage = () => {
-    setCurrentPage(prev => Math.max(prev - 1, 1));
-  };
-
-  // Modal handlers
   const ouvrirModal = (type, enseignant = null) => {
     setTypeModal(type);
     setEnseignantSelectionne(enseignant);
@@ -130,7 +85,6 @@ const Enseignants = () => {
     setTypeModal('');
   };
 
-  // Form for Add/Edit Teacher
   const FormulaireEnseignant = () => {
     const [formData, setFormData] = useState(enseignantSelectionne ? {
       prenom: enseignantSelectionne.prenom,
@@ -174,17 +128,17 @@ const Enseignants = () => {
     return (
       <form onSubmit={gererSoumission} className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <InputField label="Prénom *" type="text" value={formData.prenom} onChange={(e) => setFormData({...formData, prenom: e.target.value})} required />
-          <InputField label="Nom *" type="text" value={formData.nom} onChange={(e) => setFormData({...formData, nom: e.target.value})} required />
-          <InputField label="Email *" type="email" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} required />
-          <InputField label="Téléphone *" type="tel" value={formData.telephone} onChange={(e) => setFormData({...formData, telephone: e.target.value})} placeholder="77 123 45 67" required />
-          
+          <InputField label="Prénom *" type="text" value={formData.prenom} onChange={(e) => setFormData({ ...formData, prenom: e.target.value })} required />
+          <InputField label="Nom *" type="text" value={formData.nom} onChange={(e) => setFormData({ ...formData, nom: e.target.value })} required />
+          <InputField label="Email *" type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} required />
+          <InputField label="Téléphone *" type="tel" value={formData.telephone} onChange={(e) => setFormData({ ...formData, telephone: e.target.value })} placeholder="77 123 45 67" required />
+
           <div className="form-group">
             <label htmlFor="matiere-select" className="form-label block text-sm font-medium text-gray-700 mb-1">Matière principale *</label>
             <select
               id="matiere-select"
               value={formData.matieres[0] || ''}
-              onChange={(e) => setFormData({...formData, matieres: [parseInt(e.target.value)]})}
+              onChange={(e) => setFormData({ ...formData, matieres: [parseInt(e.target.value)] })}
               className="input-field block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-700"
               required
             >
@@ -201,7 +155,7 @@ const Enseignants = () => {
               id="classes-select"
               multiple
               value={formData.classes.map(String)}
-              onChange={(e) => setFormData({...formData, classes: Array.from(e.target.selectedOptions, option => parseInt(option.value))})}
+              onChange={(e) => setFormData({ ...formData, classes: Array.from(e.target.selectedOptions, option => parseInt(option.value)) })}
               className="input-field block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-700 h-32"
             >
               {classes.map(classe => (
@@ -210,13 +164,13 @@ const Enseignants = () => {
             </select>
             <p className="text-xs text-gray-500 mt-1">Maintenez Ctrl/Cmd pour sélectionner plusieurs classes</p>
           </div>
-          
+
           <div className="form-group">
             <label htmlFor="statut-select" className="form-label block text-sm font-medium text-gray-700 mb-1">Statut</label>
             <select
               id="statut-select"
               value={formData.statut}
-              onChange={(e) => setFormData({...formData, statut: e.target.value})}
+              onChange={(e) => setFormData({ ...formData, statut: e.target.value })}
               className="input-field block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-700 capitalize"
             >
               <option value="actif">Actif</option>
@@ -235,23 +189,22 @@ const Enseignants = () => {
     );
   };
 
-  // Columns for the Table component
   const columns = [
     {
       header: 'Enseignant',
       accessor: 'nomComplet',
       render: (enseignant) => (
         <div className="flex items-center">
-          <img
+          {/*<img
             src={enseignant.photo || 'https://images.pexels.com/photos/2726047/pexels-photo-2726047.jpeg?auto=compress&cs=tinysrgb&w=100&h=100&dpr=1'}
             alt={`${enseignant.prenom} ${enseignant.nom}`}
             className="h-10 w-10 rounded-full object-cover shadow-sm mr-4"
-          />
+          /> */}
           <div>
             <div className="text-sm font-medium text-gray-900">
               {enseignant.prenom} {enseignant.nom}
             </div>
-            <div className="text-xs text-gray-500">Enseignant</div>
+            {/*<div className="text-xs text-gray-500">Enseignant</div> */}
           </div>
         </div>
       ),
@@ -286,26 +239,12 @@ const Enseignants = () => {
       accessor: 'classes',
       render: (enseignant) => getClasseNamesByIds(enseignant.classes),
     },
-    // Statut column is removed as requested
-    // {
-    //   header: 'Statut',
-    //   accessor: 'statut',
-    //   render: (enseignant) => (
-    //     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full border ${
-    //         enseignant.statut === 'actif'
-    //           ? 'bg-green-100 text-green-800 border-green-200'
-    //           : 'bg-red-100 text-red-800 border-red-200'
-    //       }`}>
-    //       {enseignant.statut === 'actif' ? 'Actif' : 'Inactif'}
-    //     </span>
-    //   ),
-    // },
+
     {
       header: 'Actions',
       accessor: 'actions',
       render: (enseignant) => (
         <div className="flex items-center justify-end space-x-2">
-          {/* Reverted to original Button components with text */}
           <Button
             size="sm"
             variant="outline"
@@ -325,7 +264,7 @@ const Enseignants = () => {
           <Button
             size="sm"
             variant="danger"
-            onClick={() => console.log('Supprimer enseignant:', enseignant.id)} // Placeholder for delete action
+            onClick={() => console.log('Supprimer enseignant:', enseignant.id)}
             icon={Trash2}
           >
             Supprimer
@@ -334,7 +273,6 @@ const Enseignants = () => {
       ),
     },
   ];
-
 
   return (
     <div className="space-y-6">
@@ -353,9 +291,9 @@ const Enseignants = () => {
         </div>
       </div>
 
-      {/* Filters and search (Desktop version) */}
-      <Card className="p-6 shadow-sm hidden md:block">
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      {/* Filters */}
+      <Card className="p-6 shadow-sm">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
             <input
@@ -386,29 +324,14 @@ const Enseignants = () => {
               <option key={classe.id} value={classe.nom}>{classe.nom}</option>
             ))}
           </select>
-          <select
-            value={ordreTri}
-            onChange={(e) => handleFilterChange(setOrdreTri, e.target.value)}
-            className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-700"
-          >
-            <option value="nom_asc">Nom (A-Z)</option>
-            <option value="nom_desc">Nom (Z-A)</option>
-            <option value="prenom_asc">Prénom (A-Z)</option>
-            <option value="prenom_desc">Prénom (Z-A)</option>
-          </select>
         </div>
       </Card>
 
-      {/* Filter button for small screens */}
-      <div className="block md:hidden text-center mt-4">
-        <Button onClick={() => setFiltreModalOuvert(true)} variant="secondary" icon={Filter}>
-          Filtrer les enseignants
-        </Button>
-      </div>
-
-      {/* Teachers Table */}
+      {/* Table */}
       <Card className="p-0">
-        <Table columns={columns} data={currentEnseignants}
+        <Table
+          columns={columns}
+          data={enseignantsFiltres}
           noDataMessage={
             <div className="text-center py-12 text-gray-500">
               <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
@@ -419,30 +342,14 @@ const Enseignants = () => {
         />
       </Card>
 
-
-      {/* Pagination */}
-      {enseignantsFiltresEtTries.length > itemsPerPage && (
-        <div className="flex justify-center items-center space-x-4 mt-6">
-          <Button onClick={goToPreviousPage} disabled={currentPage === 1} variant="secondary" icon={ArrowLeft}>
-            Précédent
-          </Button>
-          <span className="text-gray-700 font-medium">
-            Page {currentPage} sur {totalPages}
-          </span>
-          <Button onClick={goToNextPage} disabled={currentPage === totalPages} variant="secondary" icon={ArrowRight}>
-            Suivant
-          </Button>
-        </div>
-      )}
-
-      {/* Modal for Add/Edit/View Teacher */}
+      {/* Modal ajout/modifier */}
       <Modal
         isOpen={modalOuverte}
         onClose={fermerModal}
         title={
           typeModal === 'ajouter' ? 'Ajouter un enseignant' :
-          typeModal === 'modifier' ? 'Modifier l\'enseignant' :
-          'Détails de l\'enseignant'
+            typeModal === 'modifier' ? 'Modifier l\'enseignant' :
+              'Détails de l\'enseignant'
         }
         size="md"
       >
@@ -466,8 +373,6 @@ const Enseignants = () => {
               <DetailRow icon={Mail} label="Email" value={enseignantSelectionne?.email} />
               <DetailRow icon={School} label="Classes enseignées" value={getClasseNamesByIds(enseignantSelectionne?.classes)} />
               <DetailRow icon={BookOpen} label="Matières enseignées" value={enseignantSelectionne?.matieres.map(id => matieres.find(m => m.id === id)?.nom).filter(Boolean).join(', ') || 'Aucune'} />
-              {/* Removed Statut row in Detail Modal as well */}
-              {/* <DetailRow icon={FileText} label="Statut" value={enseignantSelectionne?.statut === 'actif' ? 'Actif' : 'Inactif'} /> */}
             </div>
             <div className="flex justify-end space-x-3 mt-6 border-t pt-4 border-gray-200">
               <Button onClick={() => ouvrirModal('modifier', enseignantSelectionne)} variant="secondary" icon={Edit}>
@@ -481,63 +386,6 @@ const Enseignants = () => {
         ) : (
           <FormulaireEnseignant />
         )}
-      </Modal>
-
-      {/* Mobile Filter Modal */}
-      <Modal
-        isOpen={filtreModalOuvert}
-        onClose={() => setFiltreModalOuvert(false)}
-        title="Options de Filtrage"
-        size="sm"
-      >
-        <div className="space-y-4">
-          <InputField
-            label="Rechercher"
-            type="text"
-            placeholder="Nom, prénom, email..."
-            value={rechercheTexte}
-            onChange={(e) => handleFilterChange(setRechercheTexte, e.target.value)}
-            icon={Search}
-          />
-          <label className="block text-sm font-medium text-gray-700 mb-1">Matière principale</label>
-          <select
-            value={filtreMatiere}
-            onChange={(e) => handleFilterChange(setFiltreMatiere, e.target.value)}
-            className="input-field block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-700"
-          >
-            <option value="">Toutes les matières</option>
-            {matieres.map(matiere => (
-              <option key={matiere.id} value={matiere.nom}>{matiere.nom}</option>
-            ))}
-          </select>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Classe</label>
-          <select
-            value={filtreClasse}
-            onChange={(e) => handleFilterChange(setFiltreClasse, e.target.value)}
-            className="input-field block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-700"
-          >
-            <option value="">Toutes les classes</option>
-            {classes.map(classe => (
-              <option key={classe.id} value={classe.nom}>{classe.nom}</option>
-            ))}
-          </select>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Trier par</label>
-          <select
-            value={ordreTri}
-            onChange={(e) => handleFilterChange(setOrdreTri, e.target.value)}
-            className="input-field block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-700"
-          >
-            <option value="nom_asc">Nom (A-Z)</option>
-            <option value="nom_desc">Nom (Z-A)</option>
-            <option value="prenom_asc">Prénom (A-Z)</option>
-            <option value="prenom_desc">Prénom (Z-A)</option>
-          </select>
-          <div className="flex justify-end mt-6">
-            <Button onClick={() => setFiltreModalOuvert(false)}>
-              Appliquer les filtres
-            </Button>
-          </div>
-        </div>
       </Modal>
     </div>
   );

@@ -18,7 +18,6 @@ import InputField from '../../components/ui/InputField';
 import Modal from '../../components/ui/Modal';
 import { classes, emploisDuTemps, enseignants, matieres } from '../../data/donneesTemporaires';
 
-// Helper component for detail rows in modals
 const DetailRow = ({ icon: Icon, label, value }) => (
   <div className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg border border-gray-100">
     {Icon && <Icon className="w-5 h-5 text-blue-600 flex-shrink-0 mt-1" />}
@@ -37,8 +36,7 @@ const EmploisDuTempsPage = () => {
 
   const jours = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
   const heures = [
-    '08:00-09:00', '09:00-10:00', '10:00-11:00', '11:00-12:00',
-    '14:00-15:00', '15:00-16:00', '16:00-17:00', '17:00-18:00'
+    '08:00-10:00', '10:00-12:00', '12:00-14:00', '14:00-16:00','16:00-18:00'
   ];
 
   const getEmploiForClass = (classeId) => {
@@ -58,7 +56,7 @@ const EmploisDuTempsPage = () => {
     return {
       ...cours,
       matiereNom: matiere?.nom || 'Matière inconnue',
-      matiereCode: matiere?.code || 'XX',
+      matiereCode: matiere?.code || 'XXX',
       matiereCouleur: matiere?.couleur || '#60A5FA',
       enseignantNomComplet: enseignant ? `${enseignant.prenom} ${enseignant.nom}` : 'Enseignant inconnu',
       salle: cours.salle || 'N/A'
@@ -106,13 +104,10 @@ const EmploisDuTempsPage = () => {
 
       console.log('Données cours soumises:', newCoursData);
 
-      // --- SIMULATED ADD/UPDATE LOGIC ---
       if (typeModal === 'modifier' && coursSelectionne) {
-        // In a real app, update logic would go here
-      } else { // Ajouter
-        // In a real app, add logic would go here
+        // je mettrai ici l'api
+      } else {  
       }
-      // --- END SIMULATED LOGIC ---
 
       fermerModal();
     };
@@ -219,7 +214,7 @@ const EmploisDuTempsPage = () => {
         </div>
       </Card>
 
-      {/* Grille de l'emploi du temps - Affichage conditionnel */}
+      {/* Grille de l'emploi du temps */}
       {classeSelectionnee ? (
         <Card className="p-0 overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
@@ -250,7 +245,7 @@ const EmploisDuTempsPage = () => {
                       <td key={`${jour}-${heure}`} className="px-2 py-3 border border-gray-200 h-28 align-top">
                         {cours ? (
                           <div
-                            className="h-full rounded-lg p-2 text-xs cursor-pointer hover:opacity-90 transition-opacity flex flex-col justify-between items-center text-center" // Added items-center and text-center
+                            className="h-full rounded-lg p-2 text-xs cursor-pointer hover:opacity-90 transition-opacity flex flex-col justify-between items-center text-center" 
                             style={{ backgroundColor: 'rgb(220 238 255)', borderColor: 'rgb(180 210 255)', color: 'rgb(37 99 235)' }}
                             onClick={() => ouvrirModal('voir', cours)}
                           >

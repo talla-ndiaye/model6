@@ -14,7 +14,9 @@ const EmploiDuTempsEnseignant = () => {
   const { user } = useAuth();
 
   const jours = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
-  const heures = ['08:00-09:00', '09:00-10:00', '10:00-11:00', '11:00-12:00', '14:00-15:00', '15:00-16:00', '16:00-17:00', '17:00-18:00'];
+  const heures = [
+    '08:00-10:00', '10:00-12:00', '12:00-14:00', '14:00-16:00','16:00-18:00'
+  ];
 
   const totalHours = emploisDuTemps.filter(c => c.enseignantId === user.id).length;
   const classesTaught = new Set(emploisDuTemps.filter(c => c.enseignantId === user.id).map(c => c.classeId)).size;

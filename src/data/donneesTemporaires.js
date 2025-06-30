@@ -62,7 +62,8 @@ export const eleves = [
     parentIds: [3], // ID du parent
     telephone: '784567890',
     email: 'eleve@ecole.sn',
-    adresse: 'Rue 1 x 2, Sicap Liberté 6, Dakar' // Adresse plus spécifique au Sénégal
+    adresse: 'Rue 1 x 2, Sicap Liberté 6, Dakar',
+    matricule:"AZDZXED"
   },
   {
     id: 2,
@@ -74,7 +75,8 @@ export const eleves = [
     parentIds: [3],
     telephone: '776789012',
     email: 'mariama@ecole.sn',
-    adresse: 'Rue 1 x 2, Sicap Liberté 6, Dakar'
+    adresse: 'Rue 1 x 2, Sicap Liberté 6, Dakar',
+    matricule:'AZDZJD'
   },
   {
     id: 3,
@@ -86,7 +88,8 @@ export const eleves = [
     parentIds: [], // Pas de parent enregistré dans ce jeu de données
     telephone: '707890123',
     email: 'omar@ecole.sn',
-    adresse: 'Lot 123, Cité Fadia, Pikine' // Autre localisation
+    adresse: 'Lot 123, Cité Fadia, Pikine' ,
+    matricule:"AZD58ZJD"
   },
   { // Nouvel élève pour diversifier les données
     id: 4,
@@ -98,7 +101,8 @@ export const eleves = [
     parentIds: [],
     telephone: '771112233',
     email: 'fatou.gueye@ecole.sn',
-    adresse: 'Cité Keur Gorgui, Dakar'
+    adresse: 'Cité Keur Gorgui, Dakar',
+    matricule:"AZDAAZJD",
   },
   {
     id: 5,
@@ -110,7 +114,8 @@ export const eleves = [
     parentIds: [],
     telephone: '704445566',
     email: 'cheikh.mbaye@ecole.sn',
-    adresse: 'Grand Yoff, Dakar'
+    adresse: 'Grand Yoff, Dakar',
+    matricule:"AZDZ758JD"
   },
 ];
 
@@ -148,7 +153,7 @@ export const classes = [
   {
     id: 1,
     nom: 'Terminale S1', // Nom de classe plus réaliste
-    niveau: 'Terminale',
+    niveau: 'Tle',
     enseignantPrincipal: 2, // ID de l'enseignant principal
     nombreEleves: 35, // mis à jour
     salle: 'Salle A'
@@ -156,7 +161,7 @@ export const classes = [
   {
     id: 2,
     nom: 'Première L2',
-    niveau: 'Première',
+    niveau: '1er',
     enseignantPrincipal: 6,
     nombreEleves: 30, // mis à jour
     salle: 'Salle B'
@@ -164,7 +169,7 @@ export const classes = [
   {
     id: 3,
     nom: 'Seconde S',
-    niveau: 'Seconde',
+    niveau: '2nd',
     enseignantPrincipal: 6,
     nombreEleves: 40, // mis à jour
     salle: 'Salle C'
@@ -207,7 +212,7 @@ export const emploisDuTemps = [
     id: 1,
     classeId: 1, // Terminale S1
     jour: 'Lundi',
-    heure: '08:00-09:00',
+    heure: '08:00-10:00',
     matiereId: 1, // Mathématiques
     enseignantId: 2, // Moussa Diallo
     salle: 'Salle A'
@@ -216,7 +221,7 @@ export const emploisDuTemps = [
     id: 2,
     classeId: 1, // Terminale S1
     jour: 'Lundi',
-    heure: '09:00-10:00',
+    heure: '10:00-12:00',
     matiereId: 2, // Français
     enseignantId: 2, // Moussa Diallo
     salle: 'Salle A'
@@ -225,7 +230,7 @@ export const emploisDuTemps = [
     id: 3,
     classeId: 2, // Première L2
     jour: 'Mardi',
-    heure: '10:00-11:00',
+    heure: '14:00-16:00',
     matiereId: 3, // SVT
     enseignantId: 6, // Khady Touré
     salle: 'Salle B'
@@ -234,7 +239,7 @@ export const emploisDuTemps = [
     id: 4,
     classeId: 1, // Terminale S1
     jour: 'Mercredi',
-    heure: '14:00-15:00',
+    heure: '16:00-18:00',
     matiereId: 4, // Anglais
     enseignantId: 6, // Khady Touré
     salle: 'Salle A'
@@ -373,7 +378,7 @@ export const paiements = [
   }
 ];
 
-export const depenses = [ // Nouvel ensemble de données pour les dépenses
+export const depenses = [ 
   {
     id: 1,
     description: 'Salaires enseignants',
@@ -446,7 +451,6 @@ export const evenements = [
   }
 ];
 
-// Données pour les présences (avec des statuts variés et des heures)
 export const presences = [
   {
     id: 1,

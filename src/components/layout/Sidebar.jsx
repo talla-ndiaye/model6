@@ -20,7 +20,7 @@ import { useAuth } from '../../context/AuthContext';
 const Sidebar = ({ isOpen, onClose }) => {
   const { user, logout } = useAuth();
 
-  const getMenuItems = () => {
+  const getMenu = () => {
     switch (user?.role) {
       case 'admin':
         return [
@@ -73,22 +73,12 @@ const Sidebar = ({ isOpen, onClose }) => {
     }
   };
 
-  const menuItems = getMenuItems();
+  const menuItems = getMenu();
 
-  const getRoleGradient = (role) => {
-    const gradients = {
-      admin: 'from-blue-500 to-blue-600',
-      enseignant: 'from-blue-500 to-blue-600',
-      parent: 'from-blue-500 to-blue-600',
-      eleve: 'from-blue-500 to-blue-600',
-      comptable: 'from-gray-500 to-gray-600'
-    };
-    return gradients[role] || 'from-gray-500 to-gray-600';
-  };
 
   return (
     <>
-      {/* Overlay mobile */}
+      {/* le boutton de pour fermer le menu de navigation dans les écrans mobile */}
       {isOpen && (
         <div
           className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
@@ -96,18 +86,18 @@ const Sidebar = ({ isOpen, onClose }) => {
         />
       )}
 
-      {/* Sidebar */}
+      {/* barre de navigation*/}
       <aside className={`
         fixed lg:static inset-y-0 left-0 z-50 w-64 sm:w-72 lg:w-64 xl:w-72
         bg-white border-r border-gray-200 flex flex-col
         transform transition-transform duration-300 ease-in-out
         ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
       `}>
-        {/* Header sidebar */}
+        {/* logo + nom-ecole + role */}
         <div className="p-4 sm:p-6 border-b border-gray-200">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className={`w-10 h-10 bg-gradient-to-br ${getRoleGradient(user?.role)} rounded-xl flex items-center justify-center shadow-lg`}>
+              <div className={`w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg`}>
                 <GraduationCap className="w-6 h-6 text-white" />
               </div>
               <div>
@@ -125,7 +115,7 @@ const Sidebar = ({ isOpen, onClose }) => {
           </div>
         </div>
 
-        {/* Navigation */}
+        {/* liste du Menu */}
         <nav className="flex-1 px-4 sm:px-6 py-4 overflow-y-auto">
           <ul className="space-y-2">
             {menuItems.map((item, index) => (
@@ -155,7 +145,7 @@ const Sidebar = ({ isOpen, onClose }) => {
           </ul>
         </nav>
 
-        {/* Footer sidebar - Only Logout Button */}
+        {/*  deconnexion*/}
         <div className="p-4 sm:p-6 border-t border-blue-100">
           
             <button 

@@ -51,7 +51,7 @@ const Connexion = () => {
     { role: 'Admin', email: 'admin@ecole.sn', password: 'admin123', color: 'from-terre-500 to-terre-600' },
     { role: 'Enseignant', email: 'prof@ecole.sn', password: 'prof123', color: 'from-fleuve-500 to-fleuve-600' },
     { role: 'Parent', email: 'parent@ecole.sn', password: 'parent123', color: 'from-acacia-500 to-acacia-600' },
-    { role: 'Élève', email: 'eleve@ecole.sn', password: 'eleve123', color: 'from-soleil-500 to-soleil-600' },
+    { role: 'Élève', email: 'eleve@ecole.sn', password: 'eleve123', color: 'from-fleuve-500 to-fleuve-600' },
     { role: 'Comptable', email: 'comptable@ecole.sn', password: 'comptable123', color: 'from-gray-500 to-gray-600' }
   ];
 
@@ -60,17 +60,17 @@ const Connexion = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-soleil-50 via-white to-fleuve-50 flex items-center justify-center py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-fleuve-50 flex items-center justify-center py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8 animate-fade-in">
         {/* Header */}
         <div className="text-center">
           <div className="flex justify-center mb-6">
-            <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-soleil-400 to-fleuve-500 rounded-2xl flex items-center justify-center shadow-lg">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-fleuve-400 to-fleuve-500 rounded-2xl flex items-center justify-center shadow-lg">
               <GraduationCap className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
             </div>
           </div>
-          <h2 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-soleil-500 to-fleuve-500 bg-clip-text text-transparent">
-            EcoleManager
+          <h2 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-fleuve-500 to-fleuve-500 bg-clip-text text-transparent">
+           Sama école
           </h2>
           <p className="mt-2 text-sm sm:text-base text-gray-600">
             Connectez-vous à votre espace
@@ -111,7 +111,7 @@ const Connexion = () => {
                 />
                 <button
                   type="button"
-                  className="absolute right-3 top-9 text-gray-400 hover:text-gray-600 transition-colors"
+                  className="absolute right-3 top-11 text-gray-400 hover:text-gray-600 transition-colors"
                   onClick={() => setShowPassword(!showPassword)}
                 >
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}

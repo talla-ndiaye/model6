@@ -1,4 +1,4 @@
-import { LogOut, Menu, Settings, User, X } from 'lucide-react'; // Removed Bell icon
+import { LogOut, Menu, Settings, X } from 'lucide-react'; // Removed Bell icon
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -7,7 +7,6 @@ const Header = ({ onMenuToggle, isMobileMenuOpen }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
-  // const [showNotifications, setShowNotifications] = useState(false); // Removed notification state
   const [showProfileMenu, setShowProfileMenu] = useState(false);
 
   const handleLogout = () => {
@@ -23,7 +22,7 @@ const Header = ({ onMenuToggle, isMobileMenuOpen }) => {
   return (
     <header className="bg-white shadow-md border-b border-gray-100 sticky top-0 z-40 px-4 sm:px-6 py-3">
       <div className="flex items-center justify-between max-w-7xl mx-auto">
-        {/* Mobile Menu Toggle & Title */}
+         {/* le boutton de pour ouvrir/fermer le menu de navigation dans les écrans mobile */}
         <div className="flex items-center space-x-4">
           <button
             onClick={onMenuToggle}
@@ -36,7 +35,8 @@ const Header = ({ onMenuToggle, isMobileMenuOpen }) => {
               <Menu className="w-6 h-6" />
             )}
           </button>
-
+          
+          {/* Salutation*/}  
           <div className="flex items-center">
             
             <div className=""> 
@@ -50,34 +50,10 @@ const Header = ({ onMenuToggle, isMobileMenuOpen }) => {
           </div>
         </div>
 
-        {/* User Profile */}
+        {/* Avatar de L'utilisateur */}
         <div className="flex items-center space-x-3 sm:space-x-5">
-          {/* Notifications - REMOVED */}
-          {/*
-          <div className="relative">
-            <button
-              onClick={() => setShowNotifications(!showNotifications)}
-              className="relative p-2 text-gray-500 hover:text-blue-600 transition-colors duration-200 rounded-full hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-300"
-              aria-label="Afficher les notifications"
-            >
-              <Bell className="w-5 h-5 sm:w-6 sm:h-6" />
-              <span className="absolute top-1 right-1 block h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-white"></span>
-            </button>
-
-            {showNotifications && (
-              <div className="absolute right-0 mt-3 w-80 bg-white rounded-xl shadow-xl border border-gray-200 py-2 z-50 animate-fade-in-down transform origin-top-right">
-                <div className="px-5 py-3 border-b border-gray-200">
-                  <h3 className="font-bold text-gray-900 text-lg">Notifications</h3>
-                </div>
-                <div className="p-5">
-                  <p className="text-sm text-gray-500 text-center py-4">Aucune nouvelle notification pour le moment.</p>
-                </div>
-              </div>
-            )}
-          </div>
-          */}
-
-          {/* User Profile with Dropdown */}
+          
+          {/* Dropdown */}
           <div className="relative">
             <button
               onClick={() => setShowProfileMenu(!showProfileMenu)}
@@ -94,12 +70,7 @@ const Header = ({ onMenuToggle, isMobileMenuOpen }) => {
                   <p className="text-xs text-gray-500 capitalize mt-0.5">{user?.role}</p>
                 </div>
                 
-                <button className="w-full text-left px-5 py-2.5 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 flex items-center gap-3 transition-colors duration-200">
-                  <User className="h-4 w-4" />
-                  Mon profil
-                </button>
                 
-                {/* Conditionally render settings for admin role */}
                 {user?.role === 'admin' && (
                   <button 
                     onClick={handleGoToSettings}
