@@ -1,7 +1,7 @@
 import "slick-carousel/slick/slick-theme.css";
 import "slick-carousel/slick/slick.css";
 
-import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
+import { Navigate, Route, BrowserRouter as Router, Routes } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import DashboardLayout from './layouts/DashboardLayout';
 import ProtectedRoute from './routes/ProtectedRoute';
@@ -73,6 +73,7 @@ function App() {
             }
           >
             {/* Routes Admin */}
+            <Route path="admin" element={<Navigate to="./tableau-de-bord" replace />} />
             <Route path="admin/tableau-de-bord" element={<TableauDeBord />} />
             <Route path="admin/parametres" element={<ParametresAdmin />} />
             <Route path="admin/gestion-utilisateurs" element={<GestionUtilisateurs />} />
@@ -93,6 +94,7 @@ function App() {
 
 
             {/* Routes Enseignant */}
+            <Route path="parent" element={<Navigate to="./tableau-de-bord" replace />} />
             <Route path="enseignant/tableau-de-bord" element={<TableauDeBordEnseignant />} />
             <Route path="enseignant/mes-classes" element={<MesClasses />} />
             <Route path="enseignant/emploi-du-temps" element={<EmploiDuTempsEnseignant />} />
@@ -100,6 +102,7 @@ function App() {
             <Route path="enseignant/presences" element={<GestionPresences />} />
 
             {/* Routes Élève */}
+            <Route path="parent" element={<Navigate to="./tableau-de-bord" replace />} />
             <Route path="eleve/tableau-de-bord" element={<TableauDeBordEnseignant />} />
             <Route path="eleve/emploi-du-temps" element={<EmploiDuTempsEleve />} />
             <Route path="eleve/notes" element={<NotesEleve />} />
@@ -107,12 +110,14 @@ function App() {
             <Route path="eleve/paiements" element={<MesPaiementsEleve />} />
 
             {/* Routes Parent */}
+            <Route path="parent" element={<Navigate to="./tableau-de-bord" replace />} />
             <Route path="parent/tableau-de-bord" element={<TableauDeBordEnseignant />} />
             <Route path="parent/mes-enfants" element={<MesEnfants />} />
             <Route path="parent/paiements" element={<HistoriquePaiementsParent />} />
             <Route path="parent/presences" element={<PresencesEnfants />} />
 
             {/* Routes Comptable */}
+            <Route path="comptable" element={<Navigate to="./tableau-de-bord" replace />} />
             <Route path="comptable/tableau-de-bord" element={<TableauDeBordComptable />} />
             <Route path="comptable/paiements" element={<Recus />} />
             <Route path="comptable/statistiques" element={<StatistiquesPaiements />} />
