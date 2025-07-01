@@ -13,7 +13,6 @@ const TableauDeBordProfesseur = () => {
         ? enseignants.find(e => e.id === user.id)
         : null;
   
-    // Filtre les classes où l'utilisateur actuel est l'enseignant principal
     const mesClassesAssignees = enseignant ? classes.filter(classe => enseignant.classes.includes(classe.id)): []
     
   const mesElevesAssignes = eleves.filter(eleve => mesClassesAssignees.some(classe => classe.id === eleve.classeId));

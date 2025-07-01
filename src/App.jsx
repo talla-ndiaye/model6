@@ -95,7 +95,7 @@ function App() {
 
 
             {/* Routes Enseignant */}
-            <Route path="parent" element={<Navigate to="./tableau-de-bord" replace />} />
+            <Route path="enseignant" element={<Navigate to="./tableau-de-bord" replace />} />
             <Route path="enseignant/tableau-de-bord" element={<TableauDeBordEnseignant />} />
             <Route path="enseignant/mes-classes" element={<MesClasses />} />
             <Route path="enseignant/mes-classes/details/:id" element={<ClasseDetails />} />
@@ -105,8 +105,8 @@ function App() {
             <Route path="enseignant/presences" element={<GestionPresences />} />
 
             {/* Routes Élève */}
-            <Route path="parent" element={<Navigate to="./tableau-de-bord" replace />} />
-            <Route path="eleve/tableau-de-bord" element={<TableauDeBordEnseignant />} />
+            <Route path="eleve" element={<Navigate to="./emploi-du-temps" replace />} />
+            <Route path="eleve/tableau-de-bord" element={<Navigate to="/eleve/emploi-du-temps" replace />} />
             <Route path="eleve/emploi-du-temps" element={<EmploiDuTempsEleve />} />
             <Route path="eleve/notes" element={<NotesEleve />} />
             <Route path="eleve/presences" element={<PresencesEleve />} />

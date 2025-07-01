@@ -1,248 +1,212 @@
-import { Award, BookOpen, FileText, TrendingUp, User } from 'lucide-react'; // Added Calendar, BookOpen, User for consistent icons
-import { useState } from 'react';
+import { Award, FileText, TrendingUp } from 'lucide-react';
+import { useMemo, useState } from 'react';
 import Card from '../../components/ui/Card';
 import { useAuth } from '../../context/AuthContext';
 import { eleves, matieres, notes } from '../../data/donneesTemporaires';
 
 const NotesEleve = () => {
   const { user } = useAuth();
-  const [selectedTrimestre, setSelectedTrimestre] = useState('1');
+  const [matiereFiltre, setMatiereFiltre] = useState('all'); 
 
-  // Récupérer l'élève
-  const eleve = eleves.find(e => e.email === user.email);
+  const eleve = user?.role === 'eleve'
+    ? eleves.find(e => e.email === user.email)
+    : null;
 
-  // Filter notes by selected trimestre (assuming notes have a 'trimestre' property, if not, this part needs data adjustment)
-  // For now, I'll mock a 'trimestre' filter based on date. In a real app, 'notes' would have a trimestre field.
-  const mesNotes = notes.filter(note => {
-    if (!eleve) return false;
-    const noteDate = new Date(note.date);
-    // Simple date-based trimestre simulation (adjust as per actual trimestre logic)
-    const trimester =
-      noteDate.getMonth() < 3 ? '1' : // Jan-Mar
-      noteDate.getMonth() < 6 ? '2' : // Apr-Jun
-      noteDate.getMonth() < 9 ? '3' : '1'; // Jul-Sep, Oct-Dec (default to 1 for simplicity)
-    
-    return note.eleveId === eleve.id && String(trimester) === selectedTrimestre;
-  });
+  if (!eleve) return null;
 
-  const calculateMoyenne = (matiereId) => {
-    const notesMatiere = mesNotes.filter(n => n.matiereId === matiereId);
-    if (notesMatiere.length === 0) return null;
+  const toutesLesNotesDeLEleve = notes.filter(note => note.eleveId === eleve.id); 
 
-    const totalPoints = notesMatiere.reduce((sum, note) => sum + (note.note * note.coefficient), 0);
-    const totalCoeff = notesMatiere.reduce((sum, note) => sum + note.coefficient, 0);
+  const notesParMatiere = useMemo(() => {
+    return toutesLesNotesDeLEleve.reduce((acc, note) => {
+      const matiere = matieres.find(m => m.id === note.matiereId);
+      if (!matiere) return acc;
 
-    return (totalPoints / totalCoeff).toFixed(2);
-  };
+      if (!acc[matiere.id]) {
+        acc[matiere.id] = {
+          matiere,
+          notes: [],
+          moyenne: 0
+        };
+      }
 
-  const calculateMoyenneGenerale = () => {
-    // Calculate general average only from subjects that have notes for the selected trimester
-    const moyennesParMatiere = matieres.map(matiere => {
-      const moyenne = calculateMoyenne(matiere.id);
-      return moyenne ? { moyenne: parseFloat(moyenne), coefficient: matiere.coefficient } : null;
-    }).filter(Boolean); // Filter out subjects with no notes in the current trimester
+      acc[matiere.id].notes.push(note);
 
-    if (moyennesParMatiere.length === 0) return null; // Changed to null for clear "Pas de notes"
+      const sommeNotes = acc[matiere.id].notes.reduce((sum, n) => sum + (n.note * n.coefficient), 0); 
+      const sommeCoefficients = acc[matiere.id].notes.reduce((sum, n) => sum + n.coefficient, 0);
+      acc[matiere.id].moyenne = sommeCoefficients ? sommeNotes / sommeCoefficients : 0;
 
-    const totalPoints = moyennesParMatiere.reduce((sum, m) => sum + (m.moyenne * m.coefficient), 0);
-    const totalCoeff = moyennesParMatiere.reduce((sum, m) => sum + m.coefficient, 0);
+      return acc;
+    }, {});
+  }, [toutesLesNotesDeLEleve, matieres]);
 
-    return (totalPoints / totalCoeff).toFixed(2);
-  };
+
+  const toutesLesMatieresAvecNotes = Object.values(notesParMatiere);
+
+  const matieresFiltrees = matiereFiltre === 'all'
+    ? toutesLesMatieresAvecNotes
+    : toutesLesMatieresAvecNotes.filter(({ matiere }) => matiere.id.toString() === matiereFiltre); 
+
+
+  // Calcul de la moyenne générale
+  const moyenneGenerale = useMemo(() => {
+    if (toutesLesMatieresAvecNotes.length === 0) return 'N/A';
+
+    const moyennesValides = toutesLesMatieresAvecNotes.filter(item => item.moyenne !== 0); 
+    if (moyennesValides.length === 0) return 'N/A';
+
+    const totalPointsPonderes = moyennesValides.reduce((sum, item) => sum + (item.moyenne * item.matiere.coefficient), 0);
+    const totalCoefficients = moyennesValides.reduce((sum, item) => sum + item.matiere.coefficient, 0);
+
+    return totalCoefficients ? (totalPointsPonderes / totalCoefficients).toFixed(2) : 'N/A';
+  }, [toutesLesMatieresAvecNotes]);
+
 
   const getAppreciation = (moyenne) => {
-    if (moyenne === null) return { text: 'N/A', color: 'text-gray-500' }; // Handle null moyenne
-    if (moyenne >= 16) return { text: 'Très bien', color: 'text-green-600' };
-    if (moyenne >= 14) return { text: 'Bien', color: 'text-blue-600' };
-    if (moyenne >= 12) return { text: 'Assez bien', color: 'text-yellow-600' };
-    if (moyenne >= 10) return { text: 'Passable', color: 'text-orange-600' };
+    const valMoyenne = parseFloat(moyenne);
+    if (isNaN(valMoyenne)) return { text: 'N/A', color: 'text-gray-500' };
+    if (valMoyenne >= 16) return { text: 'Très bien', color: 'text-green-600' };
+    if (valMoyenne >= 14) return { text: 'Bien', color: 'text-blue-600' };
+    if (valMoyenne >= 12) return { text: 'Assez bien', color: 'text-yellow-600' };
+    if (valMoyenne >= 10) return { text: 'Passable', color: 'text-orange-600' };
     return { text: 'Insuffisant', color: 'text-red-600' };
   };
 
-  if (!eleve) {
-    return (
-      <div className="space-y-6">
-        <Card className="p-12 text-center bg-gray-50 border border-gray-200 shadow-sm">
-          <User className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">Profil élève non trouvé</h3>
-          <p className="text-gray-600">
-            Impossible de récupérer vos informations d'élève. Veuillez vous assurer que votre compte est correctement configuré.
-          </p>
-        </Card>
-      </div>
-    );
-  }
+  const appreciationGenerale = getAppreciation(moyenneGenerale);
 
-  const moyenneGenerale = calculateMoyenneGenerale();
-  const appreciation = getAppreciation(parseFloat(moyenneGenerale));
 
   return (
     <div className="space-y-6">
-      {/* Page Header and Trimestre Selector */}
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Mes notes</h1>
           <p className="text-gray-600">Consultez vos résultats scolaires</p>
         </div>
-
-        <select
-          value={selectedTrimestre}
-          onChange={(e) => setSelectedTrimestre(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700 shadow-sm" // Added text-gray-700 and shadow
-        >
-          <option value="1">1er Trimestre</option>
-          <option value="2">2ème Trimestre</option>
-          <option value="3">3ème Trimestre</option>
-        </select>
       </div>
 
-      {/* General Summary Cards */}
+      {/* Moyenne générale et Appréciations */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="p-6 bg-blue-50 border-blue-100 shadow-sm"> {/* Consistent card styling */}
+        <Card className="p-6 bg-blue-50 border-blue-100 shadow-sm">
           <div className="flex items-center">
-            <div className="bg-blue-600 p-3 rounded-lg"> {/* Deeper blue background */}
+            <div className="bg-blue-600 p-3 rounded-lg">
               <TrendingUp className="w-6 h-6 text-white" />
             </div>
             <div className="ml-4">
-              <p className="text-sm text-blue-800">Moyenne générale</p> {/* Deeper blue text */}
+              <p className="text-sm text-blue-800">Moyenne générale</p>
               <p className="text-2xl font-semibold text-blue-900">
-                {moyenneGenerale !== null ? `${moyenneGenerale}/20` : 'N/A'}
+                {moyenneGenerale}/20
               </p>
             </div>
           </div>
         </Card>
 
-        <Card className="p-6 bg-green-50 border-green-100 shadow-sm"> {/* Consistent card styling */}
+        <Card className="p-6 bg-green-50 border-green-100 shadow-sm">
           <div className="flex items-center">
-            <div className="bg-green-600 p-3 rounded-lg"> {/* Deeper green background */}
+            <div className="bg-green-600 p-3 rounded-lg">
               <Award className="w-6 h-6 text-white" />
             </div>
             <div className="ml-4">
-              <p className="text-sm text-green-800">Appréciation</p> {/* Deeper green text */}
-              <p className={`text-lg font-semibold ${appreciation.color}`}>
-                {appreciation.text}
+              <p className="text-sm text-green-800">Appréciation</p>
+              <p className={`text-lg font-semibold ${appreciationGenerale.color}`}>
+                {appreciationGenerale.text}
               </p>
             </div>
           </div>
         </Card>
 
-        <Card className="p-6 bg-orange-50 border-orange-100 shadow-sm"> {/* Consistent card styling */}
+        <Card className="p-6 bg-orange-50 border-orange-100 shadow-sm">
           <div className="flex items-center">
-            <div className="bg-orange-600 p-3 rounded-lg"> {/* Deeper orange background */}
+            <div className="bg-orange-600 p-3 rounded-lg">
               <FileText className="w-6 h-6 text-white" />
             </div>
             <div className="ml-4">
-              <p className="text-sm text-orange-800">Notes saisies</p> {/* Deeper orange text */}
-              <p className="text-2xl font-semibold text-orange-900">{mesNotes.length}</p>
+              <p className="text-sm text-orange-800">Notes saisies</p>
+              <p className="text-2xl font-semibold text-orange-900">{toutesLesNotesDeLEleve.length}</p>
             </div>
           </div>
         </Card>
       </div>
 
-      {/* Detail by Subject Section */}
-      <Card className="p-6 shadow-sm"> {/* Wrapped in a Card */}
-        <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
-            <FileText className="w-5 h-5 mr-2 text-blue-600" /> {/* Consistent blue icon */}
-            Détail par matière
-        </h2>
+      {/* Filtre par matière */}
+      <div className="card p-6">
+        <div className="flex items-center gap-2">
+          <label htmlFor="matiere-select" className="text-sm font-medium text-gray-700">
+            Filtrer par matière :
+          </label>
+          <select
+            id="matiere-select"
+            value={matiereFiltre}
+            onChange={(e) => setMatiereFiltre(e.target.value)}
+            className="border rounded px-3 py-1 text-sm"
+          >
+            <option value="all">Toutes les matières</option>
+            {toutesLesMatieresAvecNotes.map(({ matiere }) => (
+              <option key={matiere.id} value={matiere.id}> 
+                {matiere.nom}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
 
-        <div className="space-y-6">
-          {matieres.length > 0 ? (
-            matieres.map(matiere => {
-              const notesMatiere = mesNotes.filter(n => n.matiereId === matiere.id);
-              const moyenne = calculateMoyenne(matiere.id);
+      {/* Notes par matière */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {matieresFiltrees.length > 0 ? (
+          matieresFiltrees.map(({ matiere, notes: notesMatiereSpecifique, moyenne }) => ( 
+            <Card key={matiere.id} className="p-0 border border-gray-200 rounded-lg overflow-hidden shadow-sm">
+              <div className="p-4 border-b border-gray-200 bg-gray-50">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <FileText className="h-5 w-5 text-blue-500 mr-2" /> 
+                    <h3 className="font-medium text-gray-900">{matiere.nom}</h3>
+                  </div>
+                  <div className={`px-3 py-1 rounded-full text-sm font-medium ${
+                    moyenne >= 14 ? 'bg-green-100 text-green-700' : 
+                    moyenne >= 10 ? 'bg-yellow-100 text-yellow-700' : 
+                    'bg-red-100 text-red-700' 
+                  }`}>
+                    Moyenne: {moyenne.toFixed(2)}
+                  </div>
+                </div>
+              </div>
 
-              return (
-                <div key={matiere.id} className="border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow duration-200"> {/* Added shadow and hover */}
-                  <div className="flex items-center justify-between mb-4 pb-2 border-b border-gray-100"> {/* Added border-b */}
-                    <div className="flex items-center space-x-3">
-                      <div
-                        className="w-4 h-4 rounded"
-                        style={{ backgroundColor: matiere.couleur }}
-                      />
-                      <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                        <BookOpen className="w-5 h-5 text-blue-600" /> {/* Consistent blue icon */}
-                        {matiere.nom}
-                      </h3>
-                      <span className="text-sm text-gray-500">Coeff. {matiere.coefficient}</span>
-                    </div>
-                    <div className="text-right">
-                      {moyenne !== null ? ( // Handle null moyenne
+              <div className="p-4">
+                <div className="space-y-3">
+                  {notesMatiereSpecifique.length > 0 ? (
+                    notesMatiereSpecifique.map((note, index) => (
+                      <div key={note.id} className="flex items-center justify-between p-2 bg-gray-50 rounded"> 
                         <div>
-                          <p className={`text-xl font-bold ${
-                            parseFloat(moyenne) >= 10 ? 'text-green-600' : 'text-red-600'
-                          }`}>
-                            {moyenne}/20
+                          <p className="text-sm font-medium">
+                            {note.type} 
                           </p>
-                          <p className={`text-sm ${getAppreciation(parseFloat(moyenne)).color}`}>
-                            {getAppreciation(parseFloat(moyenne)).text}
+                          <p className="text-xs text-gray-500">
+                            {new Date(note.date).toLocaleDateString('fr-FR')} • Coef. {note.coefficient}
                           </p>
                         </div>
-                      ) : (
-                        <p className="text-gray-400 text-lg">N/A</p> // Clear N/A for no notes
-                      )}
-                    </div>
-                  </div>
-
-                  {notesMatiere.length > 0 ? (
-                    <div className="overflow-x-auto">
-                      <table className="min-w-full divide-y divide-gray-200">
-                        <thead>
-                          <tr className="bg-gray-50">
-                            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                              Date
-                            </th>
-                            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                              Type
-                            </th>
-                            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                              Note
-                            </th>
-                            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                              Coeff.
-                            </th>
-                            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                              Commentaire
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-200">
-                          {notesMatiere.map(note => (
-                            <tr key={note.id} className="hover:bg-gray-50 transition-colors">
-                              <td className="px-4 py-2 text-sm text-gray-900">
-                                {new Date(note.date).toLocaleDateString('fr-FR')}
-                              </td>
-                              <td className="px-4 py-2 text-sm text-gray-900">{note.type}</td>
-                              <td className="px-4 py-2">
-                                <span className={`text-sm font-medium ${
-                                  note.note >= 10 ? 'text-green-600' : 'text-red-600'
-                                }`}>
-                                  {note.note}/20
-                                </span>
-                              </td>
-                              <td className="px-4 py-2 text-sm text-gray-900">{note.coefficient}</td>
-                              <td className="px-4 py-2 text-sm text-gray-600">{note.commentaire || 'Aucun'}</td> {/* Handle null comment */}
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
+                        <div className={`px-3 py-1 rounded-full text-sm font-medium ${
+                          note.note >= 14 ? 'bg-green-100 text-green-700' :
+                          note.note >= 10 ? 'bg-yellow-100 text-yellow-700' :
+                          'bg-red-100 text-red-700'
+                        }`}>
+                          {note.note}/20
+                        </div>
+                      </div>
+                    ))
                   ) : (
-                    <p className="text-gray-500 text-center py-4">Aucune note enregistrée pour ce trimestre.</p>
+                    <p className="text-center text-gray-500 py-4">Aucune note enregistrée pour cette matière.</p>
                   )}
                 </div>
-              );
-            })
-          ) : (
-            <div className="text-center py-8">
-                <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-500 text-lg">Aucune note disponible pour ce trimestre.</p>
-            </div>
-          )}
-        </div>
-      </Card>
+              </div>
+            </Card>
+          ))
+        ) : (
+          <div className="col-span-full text-center py-8">
+            <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <p className="text-gray-500 text-lg">Aucune matière disponible ou filtrée.</p>
+          </div>
+        )}
+      </div>
     </div>
   );
-};
+}
 
 export default NotesEleve;

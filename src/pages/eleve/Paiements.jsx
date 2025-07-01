@@ -1,38 +1,34 @@
 import {
-    Clock,
-    CreditCard,
-    DollarSign,
-    Download,
-    Eye, // For KPIs
-    FileText // For 'No data' message
-    ,
-    Receipt
+  Clock,
+  CreditCard,
+  DollarSign,
+  Download,
+  Eye,
+  FileText,
+  Receipt
 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import Modal from '../../components/ui/Modal';
 import Table from '../../components/ui/Table';
-import { useAuth } from '../../context/AuthContext'; // To get the logged-in student's user info
-import { eleves, paiements } from '../../data/donneesTemporaires'; // Data sources
+import { useAuth } from '../../context/AuthContext';
+import { eleves, paiements } from '../../data/donneesTemporaires';
 
 const MesPaiementsEleve = () => {
-  const { user } = useAuth(); // Get the logged-in user
+  const { user } = useAuth();
   const [showReceiptModal, setShowReceiptModal] = useState(false);
   const [selectedPayment, setSelectedPayment] = useState(null);
 
-  // Find the logged-in student's profile
   const eleveProfile = useMemo(() => {
     return eleves.find(e => e.email === user.email);
   }, [user.email]);
 
-  // Filter payments related to this specific student
   const mesPaiements = useMemo(() => {
     if (!eleveProfile) return [];
     return paiements.filter(p => p.eleveId === eleveProfile.id);
   }, [paiements, eleveProfile]);
 
-  // Calculate KPIs for the student's payments
   const kpis = useMemo(() => {
     const totalPaid = mesPaiements
       .filter(p => p.statut === 'Payé')
@@ -56,7 +52,6 @@ const MesPaiementsEleve = () => {
   }, [mesPaiements]);
 
 
-  // Handlers for modals and download
   const handleViewReceipt = (payment) => {
     setSelectedPayment(payment);
     setShowReceiptModal(true);
@@ -64,10 +59,8 @@ const MesPaiementsEleve = () => {
 
   const handleDownloadReceipt = (payment) => {
     alert(`Fonctionnalité de téléchargement PDF pour le reçu REC-${payment.id.toString().padStart(4, '0')} (pour ${eleveProfile?.prenom} ${eleveProfile?.nom})`);
-    // In a real app, integrate a PDF generation library here
   };
 
-  // Columns for the payments table
   const columns = [
     {
       header: 'N° Reçu',
@@ -127,7 +120,6 @@ const MesPaiementsEleve = () => {
     }
   ];
 
-  // If student profile not found, display an error
   if (!eleveProfile) {
     return (
       <div className="space-y-6">
@@ -144,13 +136,11 @@ const MesPaiementsEleve = () => {
 
   return (
     <div className="space-y-6">
-      {/* Page Header */}
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Mes paiements</h1>
         <p className="text-gray-600">Consultez l'historique de vos paiements à l'établissement.</p>
       </div>
 
-      {/* KPIs */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
         <Card className="p-4 bg-blue-50 border border-blue-100 shadow-sm">
           <div className="flex items-center space-x-3">
@@ -181,7 +171,6 @@ const MesPaiementsEleve = () => {
         </Card>
       </div>
 
-      {/* Payments History Table */}
       <Card className="p-6 shadow-sm">
         <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
           <Receipt className="w-5 h-5 mr-2 text-blue-600" />
@@ -201,7 +190,6 @@ const MesPaiementsEleve = () => {
         )}
       </Card>
 
-      {/* Receipt Detail Modal (reused from Recus component) */}
       <Modal
         isOpen={showReceiptModal}
         onClose={() => setShowReceiptModal(false)}
@@ -225,7 +213,6 @@ const MesPaiementsEleve = () => {
               </div>
               <div>
                 <h3 className="font-semibold text-gray-900 mb-2">Informations élève</h3>
-                {/* Student info directly from eleveProfile as it's THEIR payment */}
                 {eleveProfile ? (
                   <>
                     <p><span className="text-gray-600">Nom:</span> <span className="font-medium text-gray-900">{eleveProfile.prenom} {eleveProfile.nom}</span></p>
