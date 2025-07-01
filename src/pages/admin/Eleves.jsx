@@ -1,6 +1,6 @@
 import { BadgeCheck, BookOpen, CalendarDays, Edit, Eye, Home, Mail, Phone, Plus, Search, Trash2, User } from 'lucide-react';
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import InputField from '../../components/ui/InputField';
@@ -9,19 +9,18 @@ import Table from '../../components/ui/Table';
 import { classes, eleves, utilisateurs, } from '../../data/donneesTemporaires';
 
 const Eleves = () => {
-  const [students, setStudents] = useState(eleves);
-  const [showModal, setShowModal] = useState(false);
-  const [showDetailModal, setShowDetailModal] = useState(false);
-  const [editingStudent, setEditingStudent] = useState(null);
-  const [selectedStudent, setSelectedStudent] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterClasse, setFilterClasse] = useState('');
-  const [filterSexe, setFilterSexe] = useState('');
+  const [etudiants, setEtudiants] = useState(eleves);
+  const [afficherModal, setAfficherModal] = useState(false);
+  const [afficherModalDetail, setAfficherModalDetail] = useState(false);
+  const [etudiantEnEdition, setEtudiantEnEdition] = useState(null);
+  const [etudiantSelectionne, setEtudiantSelectionne] = useState(null);
+  const [texteRecherche, setTexteRecherche] = useState('');
+  const [filtreClasse, setFiltreClasse] = useState('');
+  const [filtreSexe, setFiltreSexe] = useState('');
 
+  const navigate = useNavigate();
 
-  const navigate = useNavigate(); 
-
-  const [formData, setFormData] = useState({
+  const [donneesFormulaire, setDonneesFormulaire] = useState({
     nom: '',
     prenom: '',
     dateNaissance: '',
@@ -33,14 +32,14 @@ const Eleves = () => {
     parentIds: []
   });
 
-  const getParentInfo = (parentId) => {
+  const getInfoParent = (parentId) => {
     return utilisateurs.find(user => user.id === parentId && user.role === 'parent');
   };
 
-  const getParentsContact = (parentIds) => {
+  const getContactParents = (parentIds) => {
     if (!parentIds || parentIds.length === 0) return 'Non renseigné';
     return parentIds.map(parentId => {
-      const parent = getParentInfo(parentId);
+      const parent = getInfoParent(parentId);
       if (parent) {
         return (
           <div key={parentId} className="mb-1 last:mb-0">
@@ -54,90 +53,89 @@ const Eleves = () => {
     }).filter(Boolean);
   };
 
+  const etudiantsFiltres = etudiants.filter(etudiant => {
+    const correspondRecherche = etudiant.nom.toLowerCase().includes(texteRecherche.toLowerCase()) ||
+      etudiant.prenom.toLowerCase().includes(texteRecherche.toLowerCase()) ||
+      etudiant.telephone.toLowerCase().includes(texteRecherche.toLowerCase()) ||
+      etudiant.matricule.toLowerCase().includes(texteRecherche.toLowerCase());
+    const correspondClasse = filtreClasse === '' || etudiant.classeId.toString() === filtreClasse;
+    const correspondSexe = filtreSexe === '' || etudiant.sexe === filtreSexe;
 
-  const filteredStudents = students.filter(student => {
-    const matchesSearch = student.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          student.prenom.toLowerCase().includes(searchTerm.toLowerCase())||
-                          student.telephone.toLowerCase().includes(searchTerm.toLowerCase())||
-                          student.matricule.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesClasse = filterClasse === '' || student.classeId.toString() === filterClasse;
-    const matchesSexe = filterSexe === '' || student.sexe === filterSexe;
-
-    return matchesSearch && matchesClasse && matchesSexe;
+    return correspondRecherche && correspondClasse && correspondSexe;
   }).sort((a, b) => {
-    const nameA = `${a.prenom} ${a.nom}`.toLowerCase();
-    const nameB = `${b.prenom} ${b.nom}`.toLowerCase();
-    return nameA.localeCompare(nameB);
+    const nomA = `${a.prenom} ${a.nom}`.toLowerCase();
+    const nomB = `${b.prenom} ${b.nom}`.toLowerCase();
+    return nomA.localeCompare(nomB);
   });
 
-  const getClassName = (classeId) => {
+  const getNomClasse = (classeId) => {
     const classe = classes.find(c => c.id === classeId);
     return classe ? classe.nom : 'Non assigné';
   };
 
-  const handleSubmit = (e) => {
+  const gererSoumission = (e) => {
     e.preventDefault();
 
-    const studentData = {
-      ...formData,
-      classeId: parseInt(formData.classeId),
-      parentIds: formData.parentIds.map(Number)
+    const donneesEtudiant = {
+      ...donneesFormulaire,
+      classeId: parseInt(donneesFormulaire.classeId),
+      parentIds: donneesFormulaire.parentIds.map(Number)
     };
 
-    if (editingStudent) {
-      console.log('Modification élève:', { ...studentData, id: editingStudent.id });
-      setStudents(students.map(student =>
-        student.id === editingStudent.id ? { ...studentData, id: student.id } : student
+    if (etudiantEnEdition) {
+      console.log('Modification élève:', { ...donneesEtudiant, id: etudiantEnEdition.id });
+      setEtudiants(etudiants.map(etudiant =>
+        etudiant.id === etudiantEnEdition.id ? { ...donneesEtudiant, id: etudiant.id } : etudiant
       ));
     } else {
-      const newStudent = {
-        ...studentData,
-        id: Math.max(...students.map(s => s.id)) + 1, 
+      const nouvelEtudiant = {
+        ...donneesEtudiant,
+        id: Math.max(...etudiants.map(s => s.id)) + 1,
       };
-      console.log('Ajout élève:', newStudent);
-      setStudents([...students, newStudent]);
+      console.log('Ajout élève:', nouvelEtudiant);
+      setEtudiants([...etudiants, nouvelEtudiant]);
     }
 
-    resetForm();
+    reinitialiserFormulaire();
   };
 
-  const handleEdit = (student) => {
-    setEditingStudent(student);
-    setFormData({
-      nom: student.nom,
-      prenom: student.prenom,
-      dateNaissance: student.dateNaissance,
-      classeId: student.classeId.toString(),
-      telephone: student.telephone,
-      email: student.email,
-      adresse: student.adresse,
-      sexe: student.sexe || '',
-      parentIds: student.parentIds?.map(String) || []
+  const gererEdition = (etudiant) => {
+    setEtudiantEnEdition(etudiant);
+    setDonneesFormulaire({
+      nom: etudiant.nom,
+      prenom: etudiant.prenom,
+      dateNaissance: etudiant.dateNaissance,
+      classeId: etudiant.classeId.toString(),
+      telephone: etudiant.telephone,
+      email: etudiant.email,
+      adresse: etudiant.adresse,
+      sexe: etudiant.sexe || '',
+      parentIds: etudiant.parentIds?.map(String) || []
     });
-    setShowDetailModal(false); 
-    setShowModal(true);
+    setAfficherModalDetail(false);
+    setAfficherModal(true);
   };
 
-  const handleDetail = (student) => {
-    setSelectedStudent(student);
-    setShowDetailModal(true);
+  const gererDetail = (etudiant) => {
+    setEtudiantSelectionne(etudiant);
+    setAfficherModalDetail(true);
   };
 
-  const handleDelete = (student) => {
-    if (window.confirm(`Êtes-vous sûr de vouloir supprimer ${student.prenom} ${student.nom} ?`)) {
-      console.log('Suppression élève:', student);
-      setStudents(students.filter(s => s.id !== student.id));
-      setShowDetailModal(false); 
+  const gererSuppression = (etudiant) => {
+    if (window.confirm(`Êtes-vous sûr de vouloir supprimer ${etudiant.prenom} ${etudiant.nom} ?`)) {
+      console.log('Suppression élève:', etudiant);
+      setEtudiants(etudiants.filter(s => s.id !== etudiant.id));
+      setAfficherModalDetail(false);
     }
   };
 
-  const handleViewProfile = (studentId) => {
-    setShowDetailModal(false); 
-    navigate(`profil/${studentId}`);
+  const gererVoirProfil = (etudiantId) => {
+    setAfficherModalDetail(false);
+    navigate(`profil/${etudiantId}`);
   };
 
-  const resetForm = () => {
-    setFormData({
+  const reinitialiserFormulaire = () => {
+    setDonneesFormulaire({
       nom: '',
       prenom: '',
       dateNaissance: '',
@@ -148,40 +146,40 @@ const Eleves = () => {
       sexe: '',
       parentIds: []
     });
-    setEditingStudent(null);
-    setShowModal(false);
+    setEtudiantEnEdition(null);
+    setAfficherModal(false);
   };
 
-  const columns = [
+  const colonnes = [
     {
       header: 'Nom complet',
       accessor: 'nom',
-      render: (student) => `${student.prenom} ${student.nom}`
+      render: (etudiant) => (<NavLink to={`./profil/${etudiant.id}`}> {etudiant.prenom} {etudiant.nom}</NavLink>)
     },
     {
       header: 'Date de naissance',
       accessor: 'dateNaissance',
-      render: (student) => new Date(student.dateNaissance).toLocaleDateString('fr-FR')
+      render: (etudiant) => new Date(etudiant.dateNaissance).toLocaleDateString('fr-FR')
     },
     {
       header: 'Classe',
       accessor: 'classeId',
-      render: (student) => getClassName(student.classeId)
+      render: (etudiant) => getNomClasse(etudiant.classeId)
     },
     {
       header: 'Parent(s) Contact',
       accessor: 'parentIds',
-      render: (student) => getParentsContact(student.parentIds)
+      render: (etudiant) => getContactParents(etudiant.parentIds)
     },
     {
       header: 'Actions',
       accessor: 'actions',
-      render: (student) => (
+      render: (etudiant) => (
         <div className="flex space-x-2">
           <Button
             size="sm"
             variant="outline"
-            onClick={() => handleDetail(student)}
+            onClick={() => gererDetail(etudiant)}
             icon={Eye}
           >
             Détails
@@ -189,7 +187,7 @@ const Eleves = () => {
           <Button
             size="sm"
             variant="outline"
-            onClick={() => handleEdit(student)}
+            onClick={() => gererEdition(etudiant)}
             icon={Edit}
           >
             Modifier
@@ -197,7 +195,7 @@ const Eleves = () => {
           <Button
             size="sm"
             variant="danger"
-            onClick={() => handleDelete(student)}
+            onClick={() => gererSuppression(etudiant)}
             icon={Trash2}
           >
             Supprimer
@@ -207,7 +205,7 @@ const Eleves = () => {
     }
   ];
 
-  const DetailRow = ({ icon: Icon, label, value }) => (
+  const LigneDetail = ({ icon: Icon, label, value }) => (
     <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg border border-gray-100">
       {Icon && <Icon className="w-5 h-5 text-blue-500 flex-shrink-0" />}
       <div>
@@ -217,7 +215,7 @@ const Eleves = () => {
     </div>
   );
 
-  const parentOptions = utilisateurs.filter(u => u.role === 'parent').map(p => ({
+  const optionsParents = utilisateurs.filter(u => u.role === 'parent').map(p => ({
     value: p.id,
     label: `${p.prenom} ${p.nom} (ID: ${p.id})`
   }));
@@ -230,11 +228,11 @@ const Eleves = () => {
           <p className="text-gray-600">Gérer les informations des élèves</p>
         </div>
         <div className='row'>
-          <Button onClick={() => setShowModal(true)} icon={Plus} className='w-full'>
-          Nouvel élève
-        </Button>
+          <Button onClick={() => setAfficherModal(true)} icon={Plus} className='w-full'>
+            Nouvel élève
+          </Button>
         </div>
-        
+
       </div>
 
       <Card>
@@ -242,15 +240,15 @@ const Eleves = () => {
           <div className="flex-1">
             <InputField
               placeholder="Rechercher par nom ou prénom..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              value={texteRecherche}
+              onChange={(e) => setTexteRecherche(e.target.value)}
               icon={Search}
             />
           </div>
           <div className="sm:w-48">
             <select
-              value={filterClasse}
-              onChange={(e) => setFilterClasse(e.target.value)}
+              value={filtreClasse}
+              onChange={(e) => setFiltreClasse(e.target.value)}
               className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-700"
             >
               <option value="">Toutes les classes</option>
@@ -263,8 +261,8 @@ const Eleves = () => {
           </div>
           <div className="sm:w-48">
             <select
-              value={filterSexe}
-              onChange={(e) => setFilterSexe(e.target.value)}
+              value={filtreSexe}
+              onChange={(e) => setFiltreSexe(e.target.value)}
               className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-700"
             >
               <option value="">Tous les sexes</option>
@@ -275,30 +273,29 @@ const Eleves = () => {
         </div>
 
         <Table
-          columns={columns}
-          data={filteredStudents}
+          columns={colonnes}
+          data={etudiantsFiltres}
         />
       </Card>
 
-      {/* Modal d'ajout/modification */}
       <Modal
-        isOpen={showModal}
-        onClose={resetForm}
-        title={editingStudent ? 'Modifier l\'élève' : 'Nouvel élève'}
+        isOpen={afficherModal}
+        onClose={reinitialiserFormulaire}
+        title={etudiantEnEdition ? 'Modifier l\'élève' : 'Nouvel élève'}
         size="md"
       >
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={gererSoumission} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <InputField
               label="Prénom"
-              value={formData.prenom}
-              onChange={(e) => setFormData({...formData, prenom: e.target.value})}
+              value={donneesFormulaire.prenom}
+              onChange={(e) => setDonneesFormulaire({...donneesFormulaire, prenom: e.target.value})}
               required
             />
             <InputField
               label="Nom"
-              value={formData.nom}
-              onChange={(e) => setFormData({...formData, nom: e.target.value})}
+              value={donneesFormulaire.nom}
+              onChange={(e) => setDonneesFormulaire({...donneesFormulaire, nom: e.target.value})}
               required
             />
           </div>
@@ -306,16 +303,16 @@ const Eleves = () => {
           <InputField
             label="Date de naissance"
             type="date"
-            value={formData.dateNaissance}
-            onChange={(e) => setFormData({...formData, dateNaissance: e.target.value})}
+            value={donneesFormulaire.dateNaissance}
+            onChange={(e) => setDonneesFormulaire({...donneesFormulaire, dateNaissance: e.target.value})}
             required
           />
 
           <InputField
             label="Sexe"
             type="select"
-            value={formData.sexe}
-            onChange={(e) => setFormData({...formData, sexe: e.target.value})}
+            value={donneesFormulaire.sexe}
+            onChange={(e) => setDonneesFormulaire({...donneesFormulaire, sexe: e.target.value})}
             options={[
               { value: '', label: 'Sélectionner le sexe' },
               { value: 'M', label: 'Masculin' },
@@ -329,8 +326,8 @@ const Eleves = () => {
               Classe <span className="text-red-500">*</span>
             </label>
             <select
-              value={formData.classeId}
-              onChange={(e) => setFormData({...formData, classeId: e.target.value})}
+              value={donneesFormulaire.classeId}
+              onChange={(e) => setDonneesFormulaire({...donneesFormulaire, classeId: e.target.value})}
               className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-700"
               required
             >
@@ -346,21 +343,21 @@ const Eleves = () => {
           <InputField
             label="Email"
             type="email"
-            value={formData.email}
-            onChange={(e) => setFormData({...formData, email: e.target.value})}
+            value={donneesFormulaire.email}
+            onChange={(e) => setDonneesFormulaire({...donneesFormulaire, email: e.target.value})}
             required
           />
 
           <InputField
             label="Téléphone"
-            value={formData.telephone}
-            onChange={(e) => setFormData({...formData, telephone: e.target.value})}
+            value={donneesFormulaire.telephone}
+            onChange={(e) => setDonneesFormulaire({...donneesFormulaire, telephone: e.target.value})}
           />
 
           <InputField
             label="Adresse"
-            value={formData.adresse}
-            onChange={(e) => setFormData({...formData, adresse: e.target.value})}
+            value={donneesFormulaire.adresse}
+            onChange={(e) => setDonneesFormulaire({...donneesFormulaire, adresse: e.target.value})}
             required
           />
 
@@ -368,20 +365,20 @@ const Eleves = () => {
             label="Parent(s) associé(s)"
             type="select"
             multiple
-            value={formData.parentIds}
-            onChange={(e) => setFormData({...formData, parentIds: Array.from(e.target.selectedOptions, option => option.value)})}
-            options={parentOptions}
+            value={donneesFormulaire.parentIds}
+            onChange={(e) => setDonneesFormulaire({...donneesFormulaire, parentIds: Array.from(e.target.selectedOptions, option => option.value)})}
+            options={optionsParents}
             placeholder="Sélectionner un ou plusieurs parents"
             className="h-32"
           />
           <p className="text-xs text-gray-500 mt-1">Maintenez Ctrl/Cmd pour sélectionner plusieurs parents</p>
 
           <div className="flex justify-end space-x-3 pt-4">
-            <Button variant="outline" onClick={resetForm}>
+            <Button variant="outline" onClick={reinitialiserFormulaire}>
               Annuler
             </Button>
             <Button type="submit">
-              {editingStudent ? 'Modifier' : 'Créer'}
+              {etudiantEnEdition ? 'Modifier' : 'Créer'}
             </Button>
           </div>
         </form>
@@ -389,118 +386,92 @@ const Eleves = () => {
 
       {/* Modal de détails */}
       <Modal
-        isOpen={showDetailModal}
-        onClose={() => setShowDetailModal(false)}
+        isOpen={afficherModalDetail}
+        onClose={() => setAfficherModalDetail(false)}
         title="Détails de l'élève"
         size="md"
       >
-        {selectedStudent && (
+        {etudiantSelectionne && (
           <div className="space-y-6">
-            {/* Header  */}
             <div className="flex items-center space-x-4 pb-4 border-b border-gray-200">
               <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-2xl font-bold uppercase">
-                {selectedStudent.prenom.charAt(0)}{selectedStudent.nom.charAt(0)}
+                {etudiantSelectionne.prenom.charAt(0)}{etudiantSelectionne.nom.charAt(0)}
               </div>
               <div>
                 <h3 className="text-xl font-bold text-gray-900">
-                  {selectedStudent.prenom} {selectedStudent.nom}
+                  {etudiantSelectionne.prenom} {etudiantSelectionne.nom}
                 </h3>
-                <p className="text-sm text-gray-500">{getClassName(selectedStudent.classeId)}</p>
+                <p className="text-sm text-gray-500">{getNomClasse(etudiantSelectionne.classeId)}</p>
               </div>
             </div>
 
-            {/* infos*/}
             <div className="space-y-4">
               <h4 className="text-lg font-semibold text-gray-800">Informations Personnelles</h4>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <DetailRow
+                <LigneDetail
                   icon={CalendarDays}
                   label="Date de naissance"
-                  value={new Date(selectedStudent.dateNaissance).toLocaleDateString('fr-FR')}
+                  value={new Date(etudiantSelectionne.dateNaissance).toLocaleDateString('fr-FR')}
                 />
-                <DetailRow
+                <LigneDetail
                   icon={BookOpen}
                   label="Classe"
-                  value={getClassName(selectedStudent.classeId)}
+                  value={getNomClasse(etudiantSelectionne.classeId)}
                 />
-                <DetailRow
-                  icon={selectedStudent.sexe === 'M' ? User : User}
+                <LigneDetail
+                  icon={etudiantSelectionne.sexe === 'M' ? User : User}
                   label="Sexe"
-                  value={selectedStudent.sexe === 'M' ? 'Masculin' : selectedStudent.sexe === 'F' ? 'Féminin' : 'Non spécifié'}
+                  value={etudiantSelectionne.sexe === 'M' ? 'Masculin' : etudiantSelectionne.sexe === 'F' ? 'Féminin' : 'Non spécifié'}
                 />
-                <DetailRow
+                <LigneDetail
                   icon={BadgeCheck}
                   label="Matricule"
-                  value={(selectedStudent.matricule)}
+                  value={(etudiantSelectionne.matricule)}
                 />
               </div>
             </div>
 
-            {/* Contact  */}
             <div className="space-y-4">
               <h4 className="text-lg font-semibold text-gray-800">Coordonnées Élève</h4>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <DetailRow
+                <LigneDetail
                   icon={Mail}
                   label="Email"
-                  value={selectedStudent.email}
+                  value={etudiantSelectionne.email}
                 />
-                <DetailRow
+                <LigneDetail
                   icon={Phone}
                   label="Téléphone"
-                  value={selectedStudent.telephone}
+                  value={etudiantSelectionne.telephone}
                 />
-                <DetailRow
+                <LigneDetail
                   icon={Home}
                   label="Adresse"
-                  value={selectedStudent.adresse}
+                  value={etudiantSelectionne.adresse}
                 />
               </div>
             </div>
 
-            {/* Parent Infos */}
-            <div className="space-y-4">
-              <h4 className="text-lg font-semibold text-gray-800">Informations Parentales</h4>
-              {selectedStudent.parentIds && selectedStudent.parentIds.length > 0 ? (
-                selectedStudent.parentIds.map(parentId => {
-                  const parent = getParentInfo(parentId);
-                  if (parent) {
-                    return (
-                      <div key={parentId} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <DetailRow icon={User} label="Parent" value={`${parent.prenom} ${parent.nom}`} />
-                        <DetailRow icon={Phone} label="Téléphone Parent" value={parent.telephone || 'N/A'} />
-                        <DetailRow icon={Mail} label="Email Parent" value={parent.email || 'N/A'} />
-                      </div>
-                    );
-                  }
-                  return null;
-                })
-              ) : (
-                <p className="text-gray-500 text-sm p-3 bg-gray-50 rounded-lg border border-gray-100">Aucun parent associé.</p>
-              )}
-            </div>
-
-            {/* Actions */}
             <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
-              <Button variant="outline" onClick={() => setShowDetailModal(false)}>
+              <Button variant="outline" onClick={() => setAfficherModalDetail(false)}>
                 Fermer
               </Button>
-              <Button variant="secondary" onClick={() => handleEdit(selectedStudent)} icon={Edit}>
+              <Button variant="secondary" onClick={() => gererEdition(etudiantSelectionne)} icon={Edit}>
                 Modifier
               </Button>
-              <Button variant="danger" onClick={() => handleDelete(selectedStudent)} icon={Trash2}>
+              <Button variant="danger" onClick={() => gererSuppression(etudiantSelectionne)} icon={Trash2}>
                 Supprimer
               </Button>
-              
+
               <Button
-                variant="primary" 
-                onClick={() => handleViewProfile(selectedStudent.id)}
+                variant="primary"
+                onClick={() => gererVoirProfil(etudiantSelectionne.id)}
                 icon={Eye}
               >
                 Voir profil complet
               </Button>
             </div>
-            
+
           </div>
         )}
       </Modal>

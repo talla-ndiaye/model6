@@ -1,13 +1,12 @@
-import { Home, KeyRound, Lock, Mail, Phone, Save, User as UserIcon } from 'lucide-react'; // Added KeyRound and Lock icons
+import { Home, KeyRound, Lock, Mail, Phone, Save, User as UserIcon } from 'lucide-react';
 import { useState } from 'react';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import InputField from '../../components/ui/InputField';
 import Modal from '../../components/ui/Modal';
-import { useAuth } from '../../context/AuthContext'; // Import useAuth to get connected user
+import { useAuth } from '../../context/AuthContext';
 
-// Assuming you have a dummy data for school settings or it can come from a context
-const initialSchoolSettings = {
+const parametresInitiauxEcole = {
   nomEcole: "École Djolof",
   anneeScolaire: "2025-2026",
   adresseEcole: "Rue 10, Almadies, Dakar",
@@ -16,122 +15,105 @@ const initialSchoolSettings = {
 };
 
 const ParametresAdmin = () => {
-  const { user, updateUser } = useAuth(); // Get connected user and a potential updateUser function from AuthContext
-  
-  // State for School Settings
-  const [schoolSettings, setSchoolSettings] = useState(initialSchoolSettings);
-  const [showEditSchoolSettingsModal, setShowEditSchoolSettingsModal] = useState(false);
-  const [formDataSchool, setFormDataSchool] = useState(schoolSettings); // Form data for editing school settings
+  const { user, updateUser } = useAuth();
 
-  // State for Admin Personal Info Settings
-  const [adminInfo, setAdminInfo] = useState({ 
+  const [parametresEcole, setParametresEcole] = useState(parametresInitiauxEcole);
+  const [afficherModalModifierParametresEcole, setAfficherModalModifierParametresEcole] = useState(false);
+  const [donneesFormulaireEcole, setDonneesFormulaireEcole] = useState(parametresEcole);
+
+  const [informationsAdmin, setInformationsAdmin] = useState({
     nom: user?.nom || '',
     prenom: user?.prenom || '',
     email: user?.email || '',
     telephone: user?.telephone || ''
   });
-  const [showEditAdminInfoModal, setShowEditAdminInfoModal] = useState(false);
-  const [formDataAdmin, setFormDataAdmin] = useState(adminInfo); // Form data for editing admin info
+  const [afficherModalModifierInfosAdmin, setAfficherModalModifierInfosAdmin] = useState(false);
+  const [donneesFormulaireAdmin, setDonneesFormulaireAdmin] = useState(informationsAdmin);
 
-  // State for Password Change
-  const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
-  const [passwordForm, setPasswordForm] = useState({
-    currentPassword: '',
-    newPassword: '',
-    confirmNewPassword: ''
+  const [afficherModalChangerMotDePasse, setAfficherModalChangerMotDePasse] = useState(false);
+  const [formulaireMotDePasse, setFormulaireMotDePasse] = useState({
+    motDePasseActuel: '',
+    nouveauMotDePasse: '',
+    confirmerNouveauMotDePasse: ''
   });
 
-  // --- Helper Functions for Forms ---
-  const handleFormChange = (e, formType) => {
+  const gererChangementFormulaire = (e, typeFormulaire) => {
     const { name, value } = e.target;
-    if (formType === 'school') {
-      setFormDataSchool(prev => ({ ...prev, [name]: value }));
-    } else if (formType === 'admin') {
-      setFormDataAdmin(prev => ({ ...prev, [name]: value }));
-    } else if (formType === 'password') {
-      setPasswordForm(prev => ({ ...prev, [name]: value }));
+    if (typeFormulaire === 'ecole') {
+      setDonneesFormulaireEcole(prev => ({ ...prev, [name]: value }));
+    } else if (typeFormulaire === 'admin') {
+      setDonneesFormulaireAdmin(prev => ({ ...prev, [name]: value }));
+    } else if (typeFormulaire === 'motdepasse') {
+      setFormulaireMotDePasse(prev => ({ ...prev, [name]: value }));
     }
   };
 
-  // --- School Settings Modal Logic ---
-  const openEditSchoolSettings = () => {
-    setFormDataSchool(schoolSettings);
-    setShowEditSchoolSettingsModal(true);
+  const ouvrirModifierParametresEcole = () => {
+    setDonneesFormulaireEcole(parametresEcole);
+    setAfficherModalModifierParametresEcole(true);
   };
-  const closeEditSchoolSettings = () => {
-    setShowEditSchoolSettingsModal(false);
+  const fermerModifierParametresEcole = () => {
+    setAfficherModalModifierParametresEcole(false);
   };
-  const handleSaveSchoolSettings = (e) => {
+  const gererEnregistrementParametresEcole = (e) => {
     e.preventDefault();
-    console.log("Saving school settings:", formDataSchool);
-    setSchoolSettings(formDataSchool);
-    closeEditSchoolSettings();
+    console.log("Enregistrement des paramètres de l'école:", donneesFormulaireEcole);
+    setParametresEcole(donneesFormulaireEcole);
+    fermerModifierParametresEcole();
     alert("Paramètres de l'école mis à jour avec succès !");
   };
 
-  // --- Admin Personal Info Modal Logic ---
-  const openEditAdminInfo = () => {
-    setFormDataAdmin(adminInfo);
-    setShowEditAdminInfoModal(true);
+  const ouvrirModifierInfosAdmin = () => {
+    setDonneesFormulaireAdmin(informationsAdmin);
+    setAfficherModalModifierInfosAdmin(true);
   };
-  const closeEditAdminInfo = () => {
-    setShowEditAdminInfoModal(false);
+  const fermerModifierInfosAdmin = () => {
+    setAfficherModalModifierInfosAdmin(false);
   };
-  const handleSaveAdminInfo = (e) => {
+  const gererEnregistrementInfosAdmin = (e) => {
     e.preventDefault();
-    console.log("Saving admin personal info:", formDataAdmin);
-    setAdminInfo(formDataAdmin);
-    // if (updateUser) { updateUser({ ...user, ...formDataAdmin }); }
-    closeEditAdminInfo();
+    console.log("Enregistrement des informations personnelles de l'admin:", donneesFormulaireAdmin);
+    setInformationsAdmin(donneesFormulaireAdmin);
+    fermerModifierInfosAdmin();
     alert("Vos informations personnelles ont été mises à jour !");
   };
 
-  // --- Password Change Modal Logic ---
-  const openChangePasswordModal = () => {
-    setPasswordForm({
-      currentPassword: '',
-      newPassword: '',
-      confirmNewPassword: ''
+  const ouvrirModalChangerMotDePasse = () => {
+    setFormulaireMotDePasse({
+      motDePasseActuel: '',
+      nouveauMotDePasse: '',
+      confirmerNouveauMotDePasse: ''
     });
-    setShowChangePasswordModal(true);
+    setAfficherModalChangerMotDePasse(true);
   };
-  const closeChangePasswordModal = () => {
-    setShowChangePasswordModal(false);
+  const fermerModalChangerMotDePasse = () => {
+    setAfficherModalChangerMotDePasse(false);
   };
-  const handleChangePassword = (e) => {
+  const gererChangementMotDePasse = (e) => {
     e.preventDefault();
-    const { currentPassword, newPassword, confirmNewPassword } = passwordForm;
+    const { motDePasseActuel, nouveauMotDePasse, confirmerNouveauMotDePasse } = formulaireMotDePasse;
 
-    if (newPassword !== confirmNewPassword) {
+    if (nouveauMotDePasse !== confirmerNouveauMotDePasse) {
       alert("Le nouveau mot de passe et la confirmation ne correspondent pas.");
       return;
     }
-    if (newPassword.length < 6) {
+    if (nouveauMotDePasse.length < 6) {
       alert("Le nouveau mot de passe doit contenir au moins 6 caractères.");
       return;
     }
-    // Simulate checking current password (in a real app, this would be a backend call)
-    if (currentPassword !== user?.motDePasse) { // Assuming user has a motDePasse field
+    if (motDePasseActuel !== user?.motDePasse) {
         alert("L'ancien mot de passe est incorrect.");
         return;
     }
 
-    // In a real application, you would send this to your backend for password update
-    console.log("Password changed for user:", user?.email, "New password:", newPassword);
-    
-    // If useAuth provides an updateUser function and your backend supports it, update the user's password in context
-    // if (updateUser) {
-    //   updateUser({ ...user, motDePasse: newPassword });
-    // }
+    console.log("Mot de passe changé pour l'utilisateur:", user?.email, "Nouveau mot de passe:", nouveauMotDePasse);
 
-    closeChangePasswordModal();
+    fermerModalChangerMotDePasse();
     alert("Votre mot de passe a été modifié avec succès !");
   };
 
-
   return (
     <div className="bg-gray-50 min-h-screen p-6 sm:p-10 font-sans">
-      {/* Page Header */}
       <header className="mb-8 text-center">
         <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-2">
           Paramètres Administrateur
@@ -141,10 +123,8 @@ const ParametresAdmin = () => {
         </p>
       </header>
 
-      {/* Settings Sections Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 max-w-4xl mx-auto">
 
-        {/* Section 1: Mon Profil Administrateur */}
         <Card className="p-6 shadow-xl border border-gray-200 rounded-2xl bg-white flex flex-col items-center text-center">
           <div className="bg-blue-100 text-blue-600 p-4 rounded-full mb-4">
             <UserIcon className="w-8 h-8" />
@@ -154,16 +134,15 @@ const ParametresAdmin = () => {
             Modifiez vos informations personnelles d'administrateur.
           </p>
           <div className="text-left text-sm text-gray-700 w-full mb-4 space-y-1">
-            <p className="font-semibold">{adminInfo.prenom} {adminInfo.nom}</p>
-            <p className="flex items-center gap-1"><Mail className="w-4 h-4" /> {adminInfo.email}</p>
-            <p className="flex items-center gap-1"><Phone className="w-4 h-4" /> {adminInfo.telephone}</p>
+            <p className="font-semibold">{informationsAdmin.prenom} {informationsAdmin.nom}</p>
+            <p className="flex items-center gap-1"><Mail className="w-4 h-4" /> {informationsAdmin.email}</p>
+            <p className="flex items-center gap-1"><Phone className="w-4 h-4" /> {informationsAdmin.telephone}</p>
           </div>
-          <Button variant="outline" className="w-full mt-auto" onClick={openEditAdminInfo}>
+          <Button variant="outline" className="w-full mt-auto" onClick={ouvrirModifierInfosAdmin}>
             Modifier mon profil
           </Button>
         </Card>
 
-        {/* Section 2: Paramètres Généraux de l'École */}
         <Card className="p-6 shadow-xl border border-gray-200 rounded-2xl bg-white flex flex-col items-center text-center">
           <div className="bg-yellow-100 text-yellow-600 p-4 rounded-full mb-4">
             <Home className="w-8 h-8" />
@@ -173,18 +152,17 @@ const ParametresAdmin = () => {
             Configurez le nom, l'année scolaire, les contacts et l'adresse de l'établissement.
           </p>
           <div className="text-left text-sm text-gray-700 w-full mb-4 space-y-1">
-            <p className="font-semibold">{schoolSettings.nomEcole}</p>
-            <p>{schoolSettings.anneeScolaire}</p>
-            <p className="flex items-center gap-1"><Mail className="w-4 h-4" /> {schoolSettings.contactEmail}</p>
-            <p className="flex items-center gap-1"><Phone className="w-4 h-4" /> {schoolSettings.contactPhone}</p>
-            <p className="flex items-center gap-1"><Home className="w-4 h-4" /> {schoolSettings.adresseEcole}</p>
+            <p className="font-semibold">{parametresEcole.nomEcole}</p>
+            <p>{parametresEcole.anneeScolaire}</p>
+            <p className="flex items-center gap-1"><Mail className="w-4 h-4" /> {parametresEcole.contactEmail}</p>
+            <p className="flex items-center gap-1"><Phone className="w-4 h-4" /> {parametresEcole.contactPhone}</p>
+            <p className="flex items-center gap-1"><Home className="w-4 h-4" /> {parametresEcole.adresseEcole}</p>
           </div>
-          <Button variant="outline" className="w-full mt-auto" onClick={openEditSchoolSettings}>
+          <Button variant="outline" className="w-full mt-auto" onClick={ouvrirModifierParametresEcole}>
             Modifier les paramètres
           </Button>
         </Card>
 
-        {/* Section 3: Sécurité et Mot de passe (NEW SECTION) */}
         <Card className="p-6 shadow-xl border border-gray-200 rounded-2xl bg-white flex flex-col items-center text-center">
           <div className="bg-red-100 text-red-600 p-4 rounded-full mb-4">
             <Lock className="w-8 h-8" />
@@ -193,61 +171,60 @@ const ParametresAdmin = () => {
           <p className="text-gray-600 text-sm mb-4">
             Changez votre mot de passe pour maintenir la sécurité de votre compte.
           </p>
-          <Button variant="outline" className="w-full mt-auto" onClick={openChangePasswordModal} icon={KeyRound}>
+          <Button variant="outline" className="w-full mt-auto" onClick={ouvrirModalChangerMotDePasse} icon={KeyRound}>
             Changer le mot de passe
           </Button>
         </Card>
 
       </div>
 
-      {/* Modal for Editing School Settings */}
       <Modal
-        isOpen={showEditSchoolSettingsModal}
-        onClose={closeEditSchoolSettings}
+        isOpen={afficherModalModifierParametresEcole}
+        onClose={fermerModifierParametresEcole}
         title="Modifier les paramètres de l'école"
         size="md"
       >
-        <form onSubmit={handleSaveSchoolSettings} className="space-y-4">
+        <form onSubmit={gererEnregistrementParametresEcole} className="space-y-4">
           <InputField
             label="Nom de l'École"
             name="nomEcole"
-            value={formDataSchool.nomEcole}
-            onChange={(e) => handleFormChange(e, 'school')}
+            value={donneesFormulaireEcole.nomEcole}
+            onChange={(e) => gererChangementFormulaire(e, 'ecole')}
             required
           />
           <InputField
             label="Année Scolaire"
             name="anneeScolaire"
-            value={formDataSchool.anneeScolaire}
-            onChange={(e) => handleFormChange(e, 'school')}
+            value={donneesFormulaireEcole.anneeScolaire}
+            onChange={(e) => gererChangementFormulaire(e, 'ecole')}
             placeholder="Ex: 2024-2025"
             required
           />
           <InputField
             label="Adresse de l'École"
             name="adresseEcole"
-            value={formDataSchool.adresseEcole}
-            onChange={(e) => handleFormChange(e, 'school')}
+            value={donneesFormulaireEcole.adresseEcole}
+            onChange={(e) => gererChangementFormulaire(e, 'ecole')}
             required
           />
           <InputField
             label="Email de Contact"
             name="contactEmail"
             type="email"
-            value={formDataSchool.contactEmail}
-            onChange={(e) => handleFormChange(e, 'school')}
+            value={donneesFormulaireEcole.contactEmail}
+            onChange={(e) => gererChangementFormulaire(e, 'ecole')}
             required
           />
           <InputField
             label="Téléphone de Contact"
             name="contactPhone"
-            value={formDataSchool.contactPhone}
-            onChange={(e) => handleFormChange(e, 'school')}
+            value={donneesFormulaireEcole.contactPhone}
+            onChange={(e) => gererChangementFormulaire(e, 'ecole')}
             required
           />
 
           <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
-            <Button variant="outline" onClick={closeEditSchoolSettings}>
+            <Button variant="outline" onClick={fermerModifierParametresEcole}>
               Annuler
             </Button>
             <Button type="submit" icon={Save}>
@@ -257,46 +234,45 @@ const ParametresAdmin = () => {
         </form>
       </Modal>
 
-      {/* Modal for Editing Admin Personal Info */}
       <Modal
-        isOpen={showEditAdminInfoModal}
-        onClose={closeEditAdminInfo}
+        isOpen={afficherModalModifierInfosAdmin}
+        onClose={fermerModifierInfosAdmin}
         title="Modifier mon profil administrateur"
         size="md"
       >
-        <form onSubmit={handleSaveAdminInfo} className="space-y-4">
+        <form onSubmit={gererEnregistrementInfosAdmin} className="space-y-4">
           <InputField
             label="Prénom"
             name="prenom"
-            value={formDataAdmin.prenom}
-            onChange={(e) => handleFormChange(e, 'admin')}
+            value={donneesFormulaireAdmin.prenom}
+            onChange={(e) => gererChangementFormulaire(e, 'admin')}
             required
           />
           <InputField
             label="Nom"
             name="nom"
-            value={formDataAdmin.nom}
-            onChange={(e) => handleFormChange(e, 'admin')}
+            value={donneesFormulaireAdmin.nom}
+            onChange={(e) => gererChangementFormulaire(e, 'admin')}
             required
           />
           <InputField
             label="Email"
             name="email"
             type="email"
-            value={formDataAdmin.email}
-            onChange={(e) => handleFormChange(e, 'admin')}
+            value={donneesFormulaireAdmin.email}
+            onChange={(e) => gererChangementFormulaire(e, 'admin')}
             required
           />
           <InputField
             label="Téléphone"
             name="telephone"
-            value={formDataAdmin.telephone}
-            onChange={(e) => handleFormChange(e, 'admin')}
+            value={donneesFormulaireAdmin.telephone}
+            onChange={(e) => gererChangementFormulaire(e, 'admin')}
             required
           />
 
           <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
-            <Button variant="outline" onClick={closeEditAdminInfo}>
+            <Button variant="outline" onClick={fermerModifierInfosAdmin}>
               Annuler
             </Button>
             <Button type="submit" icon={Save}>
@@ -306,41 +282,40 @@ const ParametresAdmin = () => {
         </form>
       </Modal>
 
-      {/* Modal for Changing Password (NEW MODAL) */}
       <Modal
-        isOpen={showChangePasswordModal}
-        onClose={closeChangePasswordModal}
+        isOpen={afficherModalChangerMotDePasse}
+        onClose={fermerModalChangerMotDePasse}
         title="Changer le mot de passe"
-        size="sm" 
+        size="sm"
       >
-        <form onSubmit={handleChangePassword} className="space-y-4">
+        <form onSubmit={gererChangementMotDePasse} className="space-y-4">
           <InputField
             label="Ancien mot de passe"
-            name="currentPassword"
+            name="motDePasseActuel"
             type="password"
-            value={passwordForm.currentPassword}
-            onChange={(e) => handleFormChange(e, 'password')}
+            value={formulaireMotDePasse.motDePasseActuel}
+            onChange={(e) => gererChangementFormulaire(e, 'motdepasse')}
             required
           />
           <InputField
             label="Nouveau mot de passe"
-            name="newPassword"
+            name="nouveauMotDePasse"
             type="password"
-            value={passwordForm.newPassword}
-            onChange={(e) => handleFormChange(e, 'password')}
+            value={formulaireMotDePasse.nouveauMotDePasse}
+            onChange={(e) => gererChangementFormulaire(e, 'motdepasse')}
             required
           />
           <InputField
             label="Confirmer nouveau mot de passe"
-            name="confirmNewPassword"
+            name="confirmerNouveauMotDePasse"
             type="password"
-            value={passwordForm.confirmNewPassword}
-            onChange={(e) => handleFormChange(e, 'password')}
+            value={formulaireMotDePasse.confirmerNouveauMotDePasse}
+            onChange={(e) => gererChangementFormulaire(e, 'motdepasse')}
             required
           />
 
           <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
-            <Button variant="outline" onClick={closeChangePasswordModal}>
+            <Button variant="outline" onClick={fermerModalChangerMotDePasse}>
               Annuler
             </Button>
             <Button type="submit" icon={Lock}>

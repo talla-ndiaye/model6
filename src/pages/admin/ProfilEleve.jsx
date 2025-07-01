@@ -19,13 +19,13 @@ import Card from "../../components/ui/Card";
 
 import Button from "../../components/ui/Button";
 import {
-  presences as allPresencesData,
   classes,
   eleves,
   enseignants,
   matieres,
   notes,
   paiements,
+  presences as toutesLesPresences,
   utilisateurs,
 } from "../../data/donneesTemporaires";
 
@@ -33,54 +33,54 @@ const ProfilEleve = () => {
   const { eleveId } = useParams();
 
   const navigate = useNavigate();
-  const eleveProfile = useMemo(() => {
+  const profilEleve = useMemo(() => { // Renommé eleveProfile en profilEleve
     return eleves.find((e) => e.id === parseInt(eleveId));
   }, [eleves, eleveId]);
 
-  const studentPayments = useMemo(() => {
-    return eleveProfile
-      ? paiements.filter((p) => p.eleveId === eleveProfile.id)
+  const paiementsEleve = useMemo(() => { // Renommé studentPayments en paiementsEleve
+    return profilEleve
+      ? paiements.filter((p) => p.eleveId === profilEleve.id)
       : [];
-  }, [eleveProfile, paiements]);
+  }, [profilEleve, paiements]);
 
-  const studentNotes = useMemo(() => {
-    return eleveProfile
-      ? notes.filter((n) => n.eleveId === eleveProfile.id)
+  const notesEleve = useMemo(() => { // Renommé studentNotes en notesEleve
+    return profilEleve
+      ? notes.filter((n) => n.eleveId === profilEleve.id)
       : [];
-  }, [eleveProfile, notes]);
+  }, [profilEleve, notes]);
 
-  const studentPresences = useMemo(() => {
-    return eleveProfile
-      ? allPresencesData.filter(
-          (p) => p.eleveId === eleveProfile.id && p.statut !== "present"
+  const presencesEleve = useMemo(() => { // Renommé studentPresences en presencesEleve
+    return profilEleve
+      ? toutesLesPresences.filter( // Utilisation du nouveau nom
+          (p) => p.eleveId === profilEleve.id && p.statut !== "present"
         )
-      : []; 
-  }, [eleveProfile, allPresencesData]);
+      : [];
+  }, [profilEleve, toutesLesPresences]); // Dépendance mise à jour
 
-  const getClassName = (classeId) => {
+  const getNomClasse = (classeId) => { // Renommé getClassName en getNomClasse
     const classe = classes.find((c) => c.id === classeId);
     return classe ? classe.nom : "Non assigné";
   };
 
-  const getMatiereName = (matiereId) => {
+  const getNomMatiere = (matiereId) => { // Renommé getMatiereName en getNomMatiere
     const matiere = matieres.find((m) => m.id === matiereId);
     return matiere ? matiere.nom : "Matière inconnue";
   };
 
-  const getSexeLabel = (sexeCode) => {
-    return sexeCode === "M"
+  const getLibelleSexe = (codeSexe) => { // Renommé getSexeLabel en getLibelleSexe
+    return codeSexe === "M"
       ? "Masculin"
-      : sexeCode === "F"
+      : codeSexe === "F"
       ? "Féminin"
       : "Non spécifié";
   };
 
-  const getEnseignantName = (enseignantId) => {
+  const getNomEnseignant = (enseignantId) => { // Renommé getEnseignantName en getNomEnseignant
     const enseignant = enseignants.find((e) => e.id === enseignantId);
     return enseignant ? `${enseignant.prenom} ${enseignant.nom}` : "Non défini";
   };
 
-  const getPresenceStatusIcon = (statut) => {
+  const getIconeStatutPresence = (statut) => { // Renommé getPresenceStatusIcon en getIconeStatutPresence
     switch (statut) {
       case "absent":
         return <XCircle className="w-4 h-4 text-red-500" />;
@@ -93,7 +93,7 @@ const ProfilEleve = () => {
     }
   };
 
-  const getPresenceStatusLabel = (statut) => {
+  const getLibelleStatutPresence = (statut) => { // Renommé getPresenceStatusLabel en getLibelleStatutPresence
     switch (statut) {
       case "absent":
         return "Absent";
@@ -106,14 +106,13 @@ const ProfilEleve = () => {
     }
   };
 
- 
-  const getParentInfo = (parentId) => {
+  const getInfoParent = (parentId) => { // Renommé getParentInfo en getInfoParent
     return utilisateurs.find(
       (user) => user.id === parentId && user.role === "parent"
     );
   };
 
-  const DetailRow = ({ icon: Icon, label, value }) => (
+  const LigneDetail = ({ icon: Icon, label, value }) => ( // Renommé DetailRow en LigneDetail
     <div className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg border border-gray-100">
       {Icon && <Icon className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />}
       <div>
@@ -125,7 +124,7 @@ const ProfilEleve = () => {
     </div>
   );
 
-  if (!eleveProfile) {
+  if (!profilEleve) { // Utilisation du nouveau nom
     return (
       <div className="bg-gradient-to-br from-blue-50 to-indigo-50 min-h-screen py-6">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
@@ -157,88 +156,87 @@ const ProfilEleve = () => {
             >
               Retour
             </Button>
-            <h2 className="text-xl font-bold text-gray-900">Profil de: {eleveProfile.prenom} {eleveProfile.nom}</h2>
-          <p className="text-gray-600">Informations détaillées sur {eleveProfile.prenom} {eleveProfile.nom}.</p>
+            <h2 className="text-xl font-bold text-gray-900">Profil de: {profilEleve.prenom} {profilEleve.nom}</h2>
+            <p className="text-gray-600">Informations détaillées sur {profilEleve.prenom} {profilEleve.nom}.</p>
           </div>
         </div>
-
-        
 
         {/* Infos eleve */}
         <Card className="p-6 shadow-xl border border-gray-200 rounded-2xl bg-white">
           <div className="flex items-center space-x-5 pb-4 mb-4 border-b border-gray-200">
             <div className="w-20 h-20 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-3xl font-bold uppercase flex-shrink-0">
-              {eleveProfile.prenom.charAt(0)}
-              {eleveProfile.nom.charAt(0)}
+              {profilEleve.prenom.charAt(0)}
+              {profilEleve.nom.charAt(0)}
             </div>
             <div>
-              <h3 className="text-2xl font-bold text-gray-900">
-                {eleveProfile.prenom} {eleveProfile.nom}
+              <h3 className="text-xl font-bold text-gray-900">
+                {profilEleve.prenom} {profilEleve.nom}
               </h3>
-              <p className="text-md text-gray-600">
-                {getClassName(eleveProfile.classeId)}
+              <p className="text-sm text-gray-600">
+                Matriclue: {profilEleve.matricule}
               </p>
+              
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <DetailRow
+            <LigneDetail // Utilisation du nouveau nom
               icon={CalendarDays}
               label="Date de naissance"
-              value={new Date(eleveProfile.dateNaissance).toLocaleDateString(
+              value={new Date(profilEleve.dateNaissance).toLocaleDateString(
                 "fr-FR"
               )}
             />
-            <DetailRow
+            <LigneDetail // Utilisation du nouveau nom
               icon={BookOpen}
               label="Classe"
-              value={getClassName(eleveProfile.classeId)}
+              value={getNomClasse(profilEleve.classeId)}
             />
-            <DetailRow
+            <LigneDetail // Utilisation du nouveau nom
               icon={UserIcon}
               label="Sexe"
-              value={getSexeLabel(eleveProfile.sexe)}
+              value={getLibelleSexe(profilEleve.sexe)}
             />
-            <DetailRow icon={Mail} label="Email" value={eleveProfile.email} />
-            <DetailRow
+            <LigneDetail icon={Mail} label="Email" value={profilEleve.email} /> {/* Utilisation du nouveau nom */}
+            <LigneDetail // Utilisation du nouveau nom
               icon={Phone}
               label="Téléphone"
-              value={eleveProfile.telephone || "N/A"}
+              value={profilEleve.telephone || "N/A"}
             />
-            <DetailRow
+            <LigneDetail // Utilisation du nouveau nom
               icon={Home}
               label="Adresse"
-              value={eleveProfile.adresse || "N/A"}
+              value={profilEleve.adresse || "N/A"}
             />
           </div>
         </Card>
 
-        {/* Infos Parents  */}
+        {/* Infos Parents */}
         <Card className="p-6 shadow-xl border border-gray-200 rounded-2xl bg-white">
           <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
             <UserIcon className="w-6 h-6 mr-2 text-indigo-600" /> Informations
             des Parents
           </h2>
-          {eleveProfile.parentIds && eleveProfile.parentIds.length > 0 ? (
+          {profilEleve.parentIds && profilEleve.parentIds.length > 0 ? (
             <div className="space-y-4">
-              {eleveProfile.parentIds.map((parentId) => {
-                const parent = getParentInfo(parentId);
+              {profilEleve.parentIds.map((parentId) => {
+                const parent = getInfoParent(parentId); // Utilisation du nouveau nom
                 return parent ? (
                   <div
                     key={parentId}
                     className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-3 bg-gray-50 rounded-lg border border-gray-100"
                   >
-                    <DetailRow
+                    <LigneDetail // Utilisation du nouveau nom
                       icon={UserIcon}
                       label="Nom Complet"
                       value={`${parent.prenom} ${parent.nom}`}
                     />
-                    <DetailRow
+                    <LigneDetail // Utilisation du nouveau nom
                       icon={Phone}
                       label="Téléphone"
                       value={parent.telephone || "N/A"}
                     />
-                    <DetailRow
+                    <LigneDetail // Utilisation du nouveau nom
                       icon={Mail}
                       label="Email"
                       value={parent.email || "N/A"}
@@ -260,9 +258,9 @@ const ProfilEleve = () => {
             <CreditCard className="w-6 h-6 mr-2 text-purple-600" /> Historique
             des Paiements
           </h2>
-          {studentPayments.length > 0 ? (
+          {paiementsEleve.length > 0 ? ( // Utilisation du nouveau nom
             <div className="space-y-3">
-              {studentPayments
+              {paiementsEleve // Utilisation du nouveau nom
                 .sort((a, b) => new Date(b.date) - new Date(a.date))
                 .map((p) => (
                   <div
@@ -308,9 +306,9 @@ const ProfilEleve = () => {
             <BookOpen className="w-6 h-6 mr-2 text-orange-600" /> Historique des
             Notes
           </h2>
-          {studentNotes.length > 0 ? (
+          {notesEleve.length > 0 ? ( // Utilisation du nouveau nom
             <div className="space-y-3">
-              {studentNotes
+              {notesEleve // Utilisation du nouveau nom
                 .sort((a, b) => new Date(b.date) - new Date(a.date))
                 .map((note) => (
                   <div
@@ -319,7 +317,7 @@ const ProfilEleve = () => {
                   >
                     <div>
                       <p className="font-semibold text-gray-800">
-                        {getMatiereName(note.matiereId)} - {note.type}
+                        {getNomMatiere(note.matiereId)} - {note.type} {/* Utilisation du nouveau nom */}
                       </p>
                       <p className="text-xs text-gray-600">
                         Date: {new Date(note.date).toLocaleDateString("fr-FR")}
@@ -347,9 +345,9 @@ const ProfilEleve = () => {
           <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
             <UserX className="w-6 h-6 mr-2 text-red-600" /> Absences & Retards
           </h2>
-          {studentPresences.length > 0 ? (
+          {presencesEleve.length > 0 ? ( // Utilisation du nouveau nom
             <div className="space-y-3">
-              {studentPresences
+              {presencesEleve // Utilisation du nouveau nom
                 .sort((a, b) => new Date(b.date) - new Date(a.date))
                 .map((p) => (
                   <div
@@ -357,10 +355,10 @@ const ProfilEleve = () => {
                     className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100 text-sm"
                   >
                     <div className="flex items-center space-x-2">
-                      {getPresenceStatusIcon(p.statut)}
+                      {getIconeStatutPresence(p.statut)} {/* Utilisation du nouveau nom */}
                       <div>
                         <p className="font-semibold text-gray-800">
-                          {getPresenceStatusLabel(p.statut)} -{" "}
+                          {getLibelleStatutPresence(p.statut)} -{" "} {/* Utilisation du nouveau nom */}
                           {new Date(p.date).toLocaleDateString("fr-FR")}
                         </p>
                         <p className="text-xs text-gray-600">

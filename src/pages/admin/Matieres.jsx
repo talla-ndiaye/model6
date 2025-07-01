@@ -7,88 +7,88 @@ import Modal from '../../components/ui/Modal';
 import { matieres } from '../../data/donneesTemporaires';
 
 const Matieres = () => {
-  const [subjects, setSubjects] = useState(matieres);
-  const [showModal, setShowModal] = useState(false);
-  const [showDetailModal, setShowDetailModal] = useState(false);
-  const [editingSubject, setEditingSubject] = useState(null);
-  const [selectedSubject, setSelectedSubject] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [matieresData, setMatieresData] = useState(matieres);
+  const [afficherModal, setAfficherModal] = useState(false);
+  const [afficherModalDetail, setAfficherModalDetail] = useState(false);
+  const [matiereEnEdition, setMatiereEnEdition] = useState(null);
+  const [matiereSelectionnee, setMatiereSelectionnee] = useState(null);
+  const [texteRecherche, setTexteRecherche] = useState('');
 
-  const [formData, setFormData] = useState({
+  const [donneesFormulaire, setDonneesFormulaire] = useState({
     nom: '',
     code: '',
     coefficient: '',
-    couleur: '#3b82f6' // Default color for the background circle, not icon color
+    couleur: '#3b82f6'
   });
 
-  const filteredSubjects = subjects.filter(subject => {
-    const matchesSearch = subject.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          subject.code.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesSearch;
+  const matieresFiltrees = matieresData.filter(matiere => {
+    const correspondRecherche = matiere.nom.toLowerCase().includes(texteRecherche.toLowerCase()) ||
+      matiere.code.toLowerCase().includes(texteRecherche.toLowerCase());
+    return correspondRecherche;
   });
 
-  const handleSubmit = (e) => {
+  const gererSoumission = (e) => {
     e.preventDefault();
 
-    const subjectData = {
-      ...formData,
-      coefficient: parseInt(formData.coefficient)
+    const donneesMatiere = {
+      ...donneesFormulaire,
+      coefficient: parseInt(donneesFormulaire.coefficient)
     };
 
-    if (editingSubject) {
-      console.log('Modification matière:', { ...subjectData, id: editingSubject.id });
-      setSubjects(subjects.map(subject =>
-        subject.id === editingSubject.id ? { ...subjectData, id: subject.id } : subject
+    if (matiereEnEdition) {
+      console.log('Modification matière:', { ...donneesMatiere, id: matiereEnEdition.id });
+      setMatieresData(matieresData.map(matiere =>
+        matiere.id === matiereEnEdition.id ? { ...donneesMatiere, id: matiere.id } : matiere
       ));
     } else {
-      const newSubject = {
-        ...subjectData,
-        id: Math.max(...subjects.map(s => s.id)) + 1
+      const nouvelleMatiere = {
+        ...donneesMatiere,
+        id: Math.max(...matieresData.map(s => s.id)) + 1
       };
-      console.log('Ajout matière:', newSubject);
-      setSubjects([...subjects, newSubject]);
+      console.log('Ajout matière:', nouvelleMatiere);
+      setMatieresData([...matieresData, nouvelleMatiere]);
     }
 
-    resetForm();
+    reinitialiserFormulaire();
   };
 
-  const handleEdit = (subject) => {
-    setEditingSubject(subject);
-    setFormData({
-      nom: subject.nom,
-      code: subject.code,
-      coefficient: subject.coefficient.toString(),
-      couleur: subject.couleur
+  const gererEdition = (matiere) => {
+    setMatiereEnEdition(matiere);
+    setDonneesFormulaire({
+      nom: matiere.nom,
+      code: matiere.code,
+      coefficient: matiere.coefficient.toString(),
+      couleur: matiere.couleur
     });
-    setShowDetailModal(false);
-    setShowModal(true);
+    setAfficherModalDetail(false);
+    setAfficherModal(true);
   };
 
-  const handleDetail = (subject) => {
-    setSelectedSubject(subject);
-    setShowDetailModal(true);
+  const gererDetail = (matiere) => {
+    setMatiereSelectionnee(matiere);
+    setAfficherModalDetail(true);
   };
 
-  const handleDelete = (subject) => {
-    if (window.confirm(`Êtes-vous sûr de vouloir supprimer la matière ${subject.nom} ?`)) {
-      console.log('Suppression matière:', subject);
-      setSubjects(subjects.filter(s => s.id !== subject.id));
-      setShowDetailModal(false);
+  const gererSuppression = (matiere) => {
+    if (window.confirm(`Êtes-vous sûr de vouloir supprimer la matière ${matiere.nom} ?`)) {
+      console.log('Suppression matière:', matiere);
+      setMatieresData(matieresData.filter(s => s.id !== matiere.id));
+      setAfficherModalDetail(false);
     }
   };
 
-  const resetForm = () => {
-    setFormData({
+  const reinitialiserFormulaire = () => {
+    setDonneesFormulaire({
       nom: '',
       code: '',
       coefficient: '',
       couleur: '#3b82f6'
     });
-    setEditingSubject(null);
-    setShowModal(false);
+    setMatiereEnEdition(null);
+    setAfficherModal(false);
   };
 
-  const DetailRow = ({ label, value }) => (
+  const LigneDetail = ({ label, value }) => (
     <div className="flex justify-between items-center py-2 border-b border-gray-100 last:border-b-0">
       <span className="text-sm font-medium text-gray-600">{label}</span>
       <span className="text-sm text-gray-800 font-semibold">{value}</span>
@@ -102,7 +102,7 @@ const Matieres = () => {
           <h1 className="text-2xl font-bold text-gray-900">Gestion des matières</h1>
           <p className="text-gray-600">Gérez les matières enseignées</p>
         </div>
-        <Button onClick={() => setShowModal(true)} icon={Plus}>
+        <Button onClick={() => setAfficherModal(true)} icon={Plus}>
           Nouvelle Matière
         </Button>
       </div>
@@ -110,30 +110,26 @@ const Matieres = () => {
       <div className="mb-6">
         <InputField
           placeholder="Rechercher une matière par nom ou code..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          value={texteRecherche}
+          onChange={(e) => setTexteRecherche(e.target.value)}
           icon={Search}
         />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredSubjects.map((subject) => (
-          <Card key={subject.id} className="p-6 relative flex flex-col justify-between">
+        {matieresFiltrees.map((matiere) => (
+          <Card key={matiere.id} className="p-6 relative flex flex-col justify-between">
             <div className="flex justify-between items-start mb-4">
               <div className="flex items-center space-x-3">
                 <div
                   className="w-12 h-12 rounded-full flex items-center justify-center text-blue-600 border border-blue-200"
-                  // Background color of the circle still uses subject.couleur, but icon inside won't.
-                  // The '1A' suffix creates a very light transparency for the background color
-                  // The '40' suffix creates a more visible transparency for the border color
-                  style={{ backgroundColor: subject.couleur + '1A', borderColor: subject.couleur + '40' }}
+                  style={{ backgroundColor: matiere.couleur + '1A', borderColor: matiere.couleur + '40' }}
                 >
-                  {/* Changed icon color to a fixed blue, not dependent on subject.couleur */}
                   <BookOpen className="w-6 h-6 text-blue-500" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-lg text-gray-900">{subject.nom}</h3>
-                  <p className="text-sm text-gray-600 uppercase">{subject.code}</p>
+                  <h3 className="font-semibold text-lg text-gray-900">{matiere.nom}</h3>
+                  <p className="text-sm text-gray-600 uppercase">{matiere.code}</p>
                 </div>
               </div>
 
@@ -141,13 +137,13 @@ const Matieres = () => {
                 <Button
                   size="sm"
                   variant="ghost"
-                  onClick={() => handleEdit(subject)}
+                  onClick={() => gererEdition(matiere)}
                   icon={Edit}
                 />
                 <Button
                   size="sm"
                   variant="ghost"
-                  onClick={() => handleDelete(subject)}
+                  onClick={() => gererSuppression(matiere)}
                   icon={Trash2}
                 />
               </div>
@@ -156,7 +152,7 @@ const Matieres = () => {
             <div className="w-full mt-auto">
               <Button
                 variant="outline"
-                onClick={() => handleDetail(subject)}
+                onClick={() => gererDetail(matiere)}
                 className="w-full"
               >
                 Voir les détails
@@ -167,24 +163,24 @@ const Matieres = () => {
       </div>
 
       <Modal
-        isOpen={showModal}
-        onClose={resetForm}
-        title={editingSubject ? 'Modifier la matière' : 'Nouvelle matière'}
+        isOpen={afficherModal}
+        onClose={reinitialiserFormulaire}
+        title={matiereEnEdition ? 'Modifier la matière' : 'Nouvelle matière'}
         size="md"
       >
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={gererSoumission} className="space-y-4">
           <InputField
             label="Nom de la matière"
-            value={formData.nom}
-            onChange={(e) => setFormData({...formData, nom: e.target.value})}
+            value={donneesFormulaire.nom}
+            onChange={(e) => setDonneesFormulaire({...donneesFormulaire, nom: e.target.value})}
             placeholder="ex: Mathématiques"
             required
           />
 
           <InputField
             label="Code de la matière"
-            value={formData.code}
-            onChange={(e) => setFormData({...formData, code: e.target.value.toUpperCase()})}
+            value={donneesFormulaire.code}
+            onChange={(e) => setDonneesFormulaire({...donneesFormulaire, code: e.target.value.toUpperCase()})}
             placeholder="ex: MATH"
             required
           />
@@ -192,60 +188,58 @@ const Matieres = () => {
           <InputField
             label="Coefficient"
             type="number"
-            value={formData.coefficient}
-            onChange={(e) => setFormData({...formData, coefficient: e.target.value})}
+            value={donneesFormulaire.coefficient}
+            onChange={(e) => setDonneesFormulaire({...donneesFormulaire, coefficient: e.target.value})}
             min="1"
             max="10"
             required
           />
 
           <div className="flex justify-end space-x-3 pt-4">
-            <Button variant="outline" onClick={resetForm}>
+            <Button variant="outline" onClick={reinitialiserFormulaire}>
               Annuler
             </Button>
             <Button type="submit">
-              {editingSubject ? 'Modifier' : 'Créer'}
+              {matiereEnEdition ? 'Modifier' : 'Créer'}
             </Button>
           </div>
         </form>
       </Modal>
 
       <Modal
-        isOpen={showDetailModal}
-        onClose={() => setShowDetailModal(false)}
+        isOpen={afficherModalDetail}
+        onClose={() => setAfficherModalDetail(false)}
         title="Détails de la matière"
         size="sm"
       >
-        {selectedSubject && (
+        {matiereSelectionnee && (
           <div className="space-y-4">
             <div className="flex items-center space-x-4 pb-4 border-b border-gray-200">
               <div
                 className="w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold"
-                // Background color of the circle still uses subject.couleur
-                style={{ backgroundColor: selectedSubject.couleur + '1A', color: selectedSubject.couleur }}
+                style={{ backgroundColor: matiereSelectionnee.couleur + '1A', color: matiereSelectionnee.couleur }}
               >
-                {/* Fixed icon color in detail modal as well */}
                 <BookOpen className="w-8 h-8 text-blue-500" />
               </div>
               <div>
-                <h3 className="text-xl font-bold text-gray-900">{selectedSubject.nom}</h3>
-                <p className="text-sm text-gray-500 uppercase">{selectedSubject.code}</p>
+                <h3 className="text-xl font-bold text-gray-900">{matiereSelectionnee.nom}</h3>
+                <p className="text-sm text-gray-500 uppercase">{matiereSelectionnee.code}</p>
               </div>
             </div>
 
-            <DetailRow label="Nom complet" value={selectedSubject.nom} />
-            <DetailRow label="Code" value={selectedSubject.code} />
-            <DetailRow label="Coefficient" value={selectedSubject.coefficient} />
-            <DetailRow label="Couleur (Hex)" value={selectedSubject.couleur} />
+            <LigneDetail label="Nom complet" value={matiereSelectionnee.nom} />
+            <LigneDetail label="Code" value={matiereSelectionnee.code} />
+            <LigneDetail label="Coefficient" value={matiereSelectionnee.coefficient} />
+            <LigneDetail label="Couleur (Hex)" value={matiereSelectionnee.couleur} />
 
             <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
-              <Button variant="outline" onClick={() => setShowDetailModal(false)}>
+              <Button variant="outline" onClick={() => setAfficherModalDetail(false)}>
                 Fermer
               </Button>
-              <Button variant="secondary" onClick={() => handleEdit(selectedSubject)} icon={Edit}>
+              <Button variant="secondary" onClick={() => gererEdition(matiereSelectionnee)} icon={Edit}>
                 Modifier
               </Button>
-              <Button variant="danger" onClick={() => handleDelete(selectedSubject)} icon={Trash2}>
+              <Button variant="danger" onClick={() => gererSuppression(matiereSelectionnee)} icon={Trash2}>
                 Supprimer
               </Button>
             </div>

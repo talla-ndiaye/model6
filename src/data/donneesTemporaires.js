@@ -1,4 +1,3 @@
-// Données temporaires pour simulation - Contexte Sénégalais
 
 export const utilisateurs = [
   {
@@ -32,11 +31,11 @@ export const utilisateurs = [
   },
   {
     id: 4,
-    email: 'eleve@ecole.sn', // Cet email sera utilisé pour Lucas
+    email: 'eleve@ecole.sn', 
     motDePasse: 'eleve123',
     role: 'eleve',
     nom: 'Ndiaye',
-    prenom: 'Lucas', // Un prénom international est plausible
+    prenom: 'Talla', //
     telephone: '784567890',
     classeId: 1 // ID de la classe
   },
@@ -55,7 +54,7 @@ export const eleves = [
   {
     id: 1, // ID correspondant à l'utilisateur Lucas ci-dessus
     nom: 'Ndiaye',
-    prenom: 'Lucas',
+    prenom: 'Talla',
     dateNaissance: '2008-03-15',
     sexe: 'M', // Ajout du sexe pour la répartition G/F
     classeId: 1, // ID de la classe
@@ -471,14 +470,14 @@ export const presences = [
     id: 2,
     eleveId: 1, // Lucas Ndiaye
     date: '2025-06-23',
-    statut: 'present', // présent
+    statut: 'retard', // présent
     heureDebut: '08:00',
     heureFin: '18:00',
-    enseignantId: null, // N/A pour la présence générale
+    enseignantId: 3, // N/A pour la présence générale
     classeId: 1,
     justifie: true, // Un élève présent est "justifié" d'être là
-    motifJustification: 'Présent toute la journée',
-    commentaire: '',
+    motifJustification: 'Problème de transport en commun',
+    commentaire: 'Arrivée 15 min après le début du cours d\'SVT',
     dateCreation: '2025-06-23T18:00:00',
     dateModification: '2025-06-23T18:00:00'
   },
@@ -533,14 +532,13 @@ export const presences = [
     id: 6,
     eleveId: 2, // Mariama Ndiaye
     date: '2025-06-23',
-    statut: 'present',
+    statut: 'absent',
     heureDebut: '08:00',
     heureFin: '18:00',
-    enseignantId: null,
+    enseignantId: 1,
     classeId: 2,
     justifie: true,
-    motifJustification: 'Présente',
-    commentaire: '',
+    commentaire: 'abssent au cours de 8:00-10:00',
     dateCreation: '2025-06-23T18:00:00',
     dateModification: '2025-06-23T18:00:00'
   },

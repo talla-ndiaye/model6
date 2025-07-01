@@ -1,19 +1,19 @@
-import React, { useState } from 'react';
-import { Plus, Search, Filter, Edit, Trash2 } from 'lucide-react';
-import Card from '../../components/ui/Card';
+import { Edit, Plus, Trash2 } from 'lucide-react';
+import { useState } from 'react';
 import Button from '../../components/ui/Button';
+import Card from '../../components/ui/Card';
 import InputField from '../../components/ui/InputField';
 import Modal from '../../components/ui/Modal';
 import Table from '../../components/ui/Table';
 import { utilisateurs } from '../../data/donneesTemporaires';
 
 const GestionUtilisateurs = () => {
-  const [users, setUsers] = useState(utilisateurs);
-  const [showModal, setShowModal] = useState(false);
-  const [editingUser, setEditingUser] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterRole, setFilterRole] = useState('');
-  const [formData, setFormData] = useState({
+  const [utilisateursData, setUtilisateursData] = useState(utilisateurs);
+  const [afficherModal, setAfficherModal] = useState(false);
+  const [utilisateurEnEdition, setUtilisateurEnEdition] = useState(null);
+  const [texteRecherche, setTexteRecherche] = useState('');
+  const [filtreRole, setFiltreRole] = useState('');
+  const [donneesFormulaire, setDonneesFormulaire] = useState({
     nom: '',
     prenom: '',
     email: '',
@@ -24,56 +24,56 @@ const GestionUtilisateurs = () => {
 
   const roles = ['admin', 'enseignant', 'parent', 'eleve', 'comptable'];
 
-  const filteredUsers = users.filter(user => {
-    const matchesSearch = user.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         user.prenom.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         user.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesRole = filterRole === '' || user.role === filterRole;
-    return matchesSearch && matchesRole;
+  const utilisateursFiltres = utilisateursData.filter(utilisateur => {
+    const correspondRecherche = utilisateur.nom.toLowerCase().includes(texteRecherche.toLowerCase()) ||
+      utilisateur.prenom.toLowerCase().includes(texteRecherche.toLowerCase()) ||
+      utilisateur.email.toLowerCase().includes(texteRecherche.toLowerCase());
+    const correspondRole = filtreRole === '' || utilisateur.role === filtreRole;
+    return correspondRecherche && correspondRole;
   });
 
-  const handleSubmit = (e) => {
+  const gererSoumission = (e) => {
     e.preventDefault();
-    
-    if (editingUser) {
-      console.log('Modification utilisateur:', { ...formData, id: editingUser.id });
-      setUsers(users.map(user => 
-        user.id === editingUser.id ? { ...formData, id: user.id } : user
+
+    if (utilisateurEnEdition) {
+      console.log('Modification utilisateur:', { ...donneesFormulaire, id: utilisateurEnEdition.id });
+      setUtilisateursData(utilisateursData.map(utilisateur =>
+        utilisateur.id === utilisateurEnEdition.id ? { ...donneesFormulaire, id: utilisateur.id } : utilisateur
       ));
     } else {
-      const newUser = { 
-        ...formData, 
-        id: Math.max(...users.map(u => u.id)) + 1 
+      const nouvelUtilisateur = {
+        ...donneesFormulaire,
+        id: Math.max(...utilisateursData.map(u => u.id)) + 1
       };
-      console.log('Ajout utilisateur:', newUser);
-      setUsers([...users, newUser]);
+      console.log('Ajout utilisateur:', nouvelUtilisateur);
+      setUtilisateursData([...utilisateursData, nouvelUtilisateur]);
     }
-    
-    resetForm();
+
+    reinitialiserFormulaire();
   };
 
-  const handleEdit = (user) => {
-    setEditingUser(user);
-    setFormData({
-      nom: user.nom,
-      prenom: user.prenom,
-      email: user.email,
-      role: user.role,
-      telephone: user.telephone,
+  const gererEdition = (utilisateur) => {
+    setUtilisateurEnEdition(utilisateur);
+    setDonneesFormulaire({
+      nom: utilisateur.nom,
+      prenom: utilisateur.prenom,
+      email: utilisateur.email,
+      role: utilisateur.role,
+      telephone: utilisateur.telephone,
       motDePasse: ''
     });
-    setShowModal(true);
+    setAfficherModal(true);
   };
 
-  const handleDelete = (user) => {
-    if (window.confirm(`Êtes-vous sûr de vouloir supprimer ${user.prenom} ${user.nom} ?`)) {
-      console.log('Suppression utilisateur:', user);
-      setUsers(users.filter(u => u.id !== user.id));
+  const gererSuppression = (utilisateur) => {
+    if (window.confirm(`Êtes-vous sûr de vouloir supprimer ${utilisateur.prenom} ${utilisateur.nom} ?`)) {
+      console.log('Suppression utilisateur:', utilisateur);
+      setUtilisateursData(utilisateursData.filter(u => u.id !== utilisateur.id));
     }
   };
 
-  const resetForm = () => {
-    setFormData({
+  const reinitialiserFormulaire = () => {
+    setDonneesFormulaire({
       nom: '',
       prenom: '',
       email: '',
@@ -81,29 +81,29 @@ const GestionUtilisateurs = () => {
       telephone: '',
       motDePasse: ''
     });
-    setEditingUser(null);
-    setShowModal(false);
+    setUtilisateurEnEdition(null);
+    setAfficherModal(false);
   };
 
-  const columns = [
+  const colonnes = [
     {
       header: 'Nom complet',
       accessor: 'nom',
-      render: (user) => `${user.prenom} ${user.nom}`
+      render: (utilisateur) => `${utilisateur.prenom} ${utilisateur.nom}`
     },
     { header: 'Email', accessor: 'email' },
-    { 
-      header: 'Rôle', 
+    {
+      header: 'Rôle',
       accessor: 'role',
-      render: (user) => (
+      render: (utilisateur) => (
         <span className={`px-2 py-1 text-xs rounded-full capitalize ${
-          user.role === 'admin' ? 'bg-red-100 text-red-800' :
-          user.role === 'enseignant' ? 'bg-blue-100 text-blue-800' :
-          user.role === 'parent' ? 'bg-green-100 text-green-800' :
-          user.role === 'eleve' ? 'bg-yellow-100 text-yellow-800' :
+          utilisateur.role === 'admin' ? 'bg-red-100 text-red-800' :
+          utilisateur.role === 'enseignant' ? 'bg-blue-100 text-blue-800' :
+          utilisateur.role === 'parent' ? 'bg-green-100 text-green-800' :
+          utilisateur.role === 'eleve' ? 'bg-yellow-100 text-yellow-800' :
           'bg-gray-100 text-gray-800'
         }`}>
-          {user.role}
+          {utilisateur.role}
         </span>
       )
     },
@@ -111,12 +111,12 @@ const GestionUtilisateurs = () => {
     {
       header: 'Actions',
       accessor: 'actions',
-      render: (user) => (
+      render: (utilisateur) => (
         <div className="flex space-x-2">
           <Button
             size="sm"
             variant="outline"
-            onClick={() => handleEdit(user)}
+            onClick={() => gererEdition(utilisateur)}
             icon={Edit}
           >
             Modifier
@@ -124,7 +124,7 @@ const GestionUtilisateurs = () => {
           <Button
             size="sm"
             variant="danger"
-            onClick={() => handleDelete(user)}
+            onClick={() => gererSuppression(utilisateur)}
             icon={Trash2}
           >
             Supprimer
@@ -141,7 +141,7 @@ const GestionUtilisateurs = () => {
           <h1 className="text-2xl font-bold text-gray-900">Gestion des utilisateurs</h1>
           <p className="text-gray-600">Gérer tous les comptes utilisateurs</p>
         </div>
-        <Button onClick={() => setShowModal(true)} icon={Plus}>
+        <Button onClick={() => setAfficherModal(true)} icon={Plus}>
           Nouvel utilisateur
         </Button>
       </div>
@@ -151,14 +151,14 @@ const GestionUtilisateurs = () => {
           <div className="flex-1">
             <InputField
               placeholder="Rechercher par nom, prénom ou email..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              value={texteRecherche}
+              onChange={(e) => setTexteRecherche(e.target.value)}
             />
           </div>
           <div className="sm:w-48">
             <select
-              value={filterRole}
-              onChange={(e) => setFilterRole(e.target.value)}
+              value={filtreRole}
+              onChange={(e) => setFiltreRole(e.target.value)}
               className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="">Tous les rôles</option>
@@ -172,29 +172,29 @@ const GestionUtilisateurs = () => {
         </div>
 
         <Table
-          columns={columns}
-          data={filteredUsers}
+          columns={colonnes}
+          data={utilisateursFiltres}
         />
       </Card>
 
       <Modal
-        isOpen={showModal}
-        onClose={resetForm}
-        title={editingUser ? 'Modifier l\'utilisateur' : 'Nouvel utilisateur'}
+        isOpen={afficherModal}
+        onClose={reinitialiserFormulaire}
+        title={utilisateurEnEdition ? 'Modifier l\'utilisateur' : 'Nouvel utilisateur'}
         size="md"
       >
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={gererSoumission} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <InputField
               label="Prénom"
-              value={formData.prenom}
-              onChange={(e) => setFormData({...formData, prenom: e.target.value})}
+              value={donneesFormulaire.prenom}
+              onChange={(e) => setDonneesFormulaire({...donneesFormulaire, prenom: e.target.value})}
               required
             />
             <InputField
               label="Nom"
-              value={formData.nom}
-              onChange={(e) => setFormData({...formData, nom: e.target.value})}
+              value={donneesFormulaire.nom}
+              onChange={(e) => setDonneesFormulaire({...donneesFormulaire, nom: e.target.value})}
               required
             />
           </div>
@@ -202,15 +202,15 @@ const GestionUtilisateurs = () => {
           <InputField
             label="Email"
             type="email"
-            value={formData.email}
-            onChange={(e) => setFormData({...formData, email: e.target.value})}
+            value={donneesFormulaire.email}
+            onChange={(e) => setDonneesFormulaire({...donneesFormulaire, email: e.target.value})}
             required
           />
 
           <InputField
             label="Téléphone"
-            value={formData.telephone}
-            onChange={(e) => setFormData({...formData, telephone: e.target.value})}
+            value={donneesFormulaire.telephone}
+            onChange={(e) => setDonneesFormulaire({...donneesFormulaire, telephone: e.target.value})}
           />
 
           <div className="mb-4">
@@ -218,8 +218,8 @@ const GestionUtilisateurs = () => {
               Rôle <span className="text-red-500">*</span>
             </label>
             <select
-              value={formData.role}
-              onChange={(e) => setFormData({...formData, role: e.target.value})}
+              value={donneesFormulaire.role}
+              onChange={(e) => setDonneesFormulaire({...donneesFormulaire, role: e.target.value})}
               className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               required
             >
@@ -232,19 +232,19 @@ const GestionUtilisateurs = () => {
           </div>
 
           <InputField
-            label={editingUser ? 'Nouveau mot de passe (optionnel)' : 'Mot de passe'}
+            label={utilisateurEnEdition ? 'Nouveau mot de passe (optionnel)' : 'Mot de passe'}
             type="password"
-            value={formData.motDePasse}
-            onChange={(e) => setFormData({...formData, motDePasse: e.target.value})}
-            required={!editingUser}
+            value={donneesFormulaire.motDePasse}
+            onChange={(e) => setDonneesFormulaire({...donneesFormulaire, motDePasse: e.target.value})}
+            required={!utilisateurEnEdition}
           />
 
           <div className="flex justify-end space-x-3 pt-4">
-            <Button variant="outline" onClick={resetForm}>
+            <Button variant="outline" onClick={reinitialiserFormulaire}>
               Annuler
             </Button>
             <Button type="submit">
-              {editingUser ? 'Modifier' : 'Créer'}
+              {utilisateurEnEdition ? 'Modifier' : 'Créer'}
             </Button>
           </div>
         </form>

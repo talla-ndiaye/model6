@@ -1,40 +1,39 @@
 import {
-    Calendar // For date filter
-    , // For "Edit Expense" button (optional)
-    DollarSign, // For "Delete Expense" button (optional, but good for management)
-    Edit2, // For "Add Expense" button
-    Eye,
-    PlusCircle, Search, // For evolution chart
-    Tag, // For "View Details" button
-    Trash2, // For stats or general finance icon
-    TrendingUp
+  Calendar,
+  DollarSign,
+  Edit2,
+  Eye,
+  PlusCircle,
+  Search,
+  Tag,
+  Trash2,
+  TrendingUp
 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import {
-    Legend,
-    Line,
-    LineChart,
-    ResponsiveContainer,
-    Tooltip,
-    XAxis,
-    YAxis
-} from 'recharts'; // Recharts for the evolution graph
+  Legend,
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis
+} from 'recharts';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
-import InputField from '../../components/ui/InputField'; // For form fields
+import InputField from '../../components/ui/InputField';
 import Modal from '../../components/ui/Modal';
 import Table from '../../components/ui/Table';
 
-import { depenses as initialDepenses } from '../../data/donneesTemporaires'; // Import initial expenses data
+import { depenses as initialDepenses } from '../../data/donneesTemporaires';
 
 const GestionDepenses = () => {
   const [depenses, setDepenses] = useState(initialDepenses);
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
-  const [selectedDepense, setSelectedDepense] = useState(null); // For viewing/editing details
+  const [estModalAjoutOuvert, setEstModalAjoutOuvert] = useState(false);
+  const [estModalDetailsOuvert, setEstModalDetailsOuvert] = useState(false);
+  const [depenseSelectionnee, setDepenseSelectionnee] = useState(null);
 
-  // Form state for adding/editing expense
-  const [formDepense, setFormDepense] = useState({
+  const [formulaireDepense, setFormulaireDepense] = useState({
     id: null,
     description: '',
     montant: '',
@@ -42,180 +41,171 @@ const GestionDepenses = () => {
     categorie: ''
   });
 
-  // Filter states
-  const [filterCategory, setFilterCategory] = useState('');
-  const [filterPeriod, setFilterPeriod] = useState(''); // New filter for period
-  const [searchTerm, setSearchTerm] = useState(''); // Search by description
+  const [filtreCategorie, setFiltreCategorie] = useState('');
+  const [filtrePeriode, setFiltrePeriode] = useState('');
+  const [texteRecherche, setTexteRecherche] = useState('');
 
-  // --- Helper Functions ---
-  const getNextId = () => {
+  const getProchainId = () => {
     return depenses.length > 0 ? Math.max(...depenses.map(d => d.id)) + 1 : 1;
   };
 
-  const isDateInPeriod = (depenseDateString, period) => {
-    const depenseDate = new Date(depenseDateString);
-    const now = new Date();
-    now.setHours(0,0,0,0); // Reset time for accurate date comparison
+  const estDateDansPeriode = (dateDepenseString, periode) => {
+    const dateDepense = new Date(dateDepenseString);
+    const maintenant = new Date();
+    maintenant.setHours(0, 0, 0, 0);
 
-    switch (period) {
+    switch (periode) {
       case 'today':
-        return depenseDate.toDateString() === now.toDateString();
+        return dateDepense.toDateString() === maintenant.toDateString();
       case 'this_week':
-        const startOfWeek = new Date(now.getFullYear(), now.getMonth(), now.getDate() - now.getDay()); // Sunday
-        const endOfWeek = new Date(now.getFullYear(), now.getMonth(), now.getDate() - now.getDay() + 6); // Saturday
-        return depenseDate >= startOfWeek && depenseDate <= endOfWeek;
+        const debutSemaine = new Date(maintenant.getFullYear(), maintenant.getMonth(), maintenant.getDate() - maintenant.getDay());
+        const finSemaine = new Date(maintenant.getFullYear(), maintenant.getMonth(), maintenant.getDate() - maintenant.getDay() + 6);
+        return dateDepense >= debutSemaine && dateDepense <= finSemaine;
       case 'this_month':
-        return depenseDate.getMonth() === now.getMonth() && depenseDate.getFullYear() === now.getFullYear();
+        return dateDepense.getMonth() === maintenant.getMonth() && dateDepense.getFullYear() === maintenant.getFullYear();
       case 'this_year':
-        return depenseDate.getFullYear() === now.getFullYear();
+        return dateDepense.getFullYear() === maintenant.getFullYear();
       default:
-        return true; // No period filter
+        return true;
     }
   };
 
-  // --- Data Filtering and Memoization ---
-  const filteredDepenses = useMemo(() => {
-    let currentDepenses = depenses;
+  const depensesFiltrees = useMemo(() => {
+    let depensesActuelles = depenses;
 
-    if (filterCategory !== '') {
-      currentDepenses = currentDepenses.filter(d => d.categorie === filterCategory);
+    if (filtreCategorie !== '') {
+      depensesActuelles = depensesActuelles.filter(d => d.categorie === filtreCategorie);
     }
-    if (filterPeriod !== '') {
-      currentDepenses = currentDepenses.filter(d => isDateInPeriod(d.date, filterPeriod));
+    if (filtrePeriode !== '') {
+      depensesActuelles = depensesActuelles.filter(d => estDateDansPeriode(d.date, filtrePeriode));
     }
-    if (searchTerm) {
-      const lowerCaseSearchTerm = searchTerm.toLowerCase();
-      currentDepenses = currentDepenses.filter(d =>
-        d.description.toLowerCase().includes(lowerCaseSearchTerm) ||
-        d.categorie.toLowerCase().includes(lowerCaseSearchTerm)
+    if (texteRecherche) {
+      const texteRechercheMin = texteRecherche.toLowerCase();
+      depensesActuelles = depensesActuelles.filter(d =>
+        d.description.toLowerCase().includes(texteRechercheMin) ||
+        d.categorie.toLowerCase().includes(texteRechercheMin)
       );
     }
-    return currentDepenses.sort((a,b) => new Date(b.date) - new Date(a.date)); // Sort by date descending
-  }, [depenses, filterCategory, filterPeriod, searchTerm]);
+    return depensesActuelles.sort((a, b) => new Date(b.date) - new Date(a.date));
+  }, [depenses, filtreCategorie, filtrePeriode, texteRecherche]);
 
-  // --- Chart Data Processing ---
-  const depensesEvolutionData = useMemo(() => {
-    const now = new Date();
-    const currentYear = now.getFullYear();
-    const currentMonth = now.getMonth();
+  const donneesEvolutionDepenses = useMemo(() => {
+    const maintenant = new Date();
+    const anneeActuelle = maintenant.getFullYear();
+    const moisActuel = maintenant.getMonth();
 
-    const data = [];
-    for (let i = 11; i >= 0; i--) { // Last 12 months
-      let m = currentMonth - i;
-      let y = currentYear;
+    const donnees = [];
+    for (let i = 11; i >= 0; i--) {
+      let m = moisActuel - i;
+      let y = anneeActuelle;
       if (m < 0) { m += 12; y -= 1; }
-      data.push({
+      donnees.push({
         name: new Date(y, m, 1).toLocaleString('fr-FR', { month: 'short', year: '2-digit' }),
         Montant: 0
       });
     }
 
     depenses.forEach(d => {
-      const depenseDate = new Date(d.date);
-      const monthLabel = depenseDate.toLocaleString('fr-FR', { month: 'short', year: '2-digit' });
-      const index = data.findIndex(item => item.name === monthLabel);
+      const dateDepense = new Date(d.date);
+      const libelleMois = dateDepense.toLocaleString('fr-FR', { month: 'short', year: '2-digit' });
+      const index = donnees.findIndex(item => item.name === libelleMois);
       if (index !== -1) {
-        data[index].Montant += d.montant;
+        donnees[index].Montant += d.montant;
       }
     });
-    return data;
+    return donnees;
   }, [depenses]);
 
-  // --- Statistics Calculation ---
-  const stats = useMemo(() => {
-    const totalCurrentMonth = depenses.filter(d => {
+  const statistiques = useMemo(() => {
+    const now = new Date(); // Define now here
+    const totalMoisActuel = depenses.filter(d => {
       const dDate = new Date(d.date);
-      const now = new Date();
       return dDate.getMonth() === now.getMonth() && dDate.getFullYear() === now.getFullYear();
-    }).reduce((sum, d) => sum + d.montant, 0);
+    }).reduce((somme, d) => somme + d.montant, 0);
 
-    const totalYear = depenses.filter(d => {
+    const totalAnnee = depenses.filter(d => {
         const dDate = new Date(d.date);
-        const now = new Date();
         return dDate.getFullYear() === now.getFullYear();
-    }).reduce((sum, d) => sum + d.montant, 0);
+    }).reduce((somme, d) => somme + d.montant, 0);
 
-    return { totalCurrentMonth, totalYear };
+    return { totalMoisActuel, totalAnnee };
   }, [depenses]);
 
-
-  // --- Modal Functions ---
-  const openAddModal = () => {
-    setFormDepense({
-      id: null, // New expense
+  const ouvrirModalAjout = () => {
+    setFormulaireDepense({
+      id: null,
       description: '',
       montant: '',
-      date: new Date().toISOString().split('T')[0], // Default to today
+      date: new Date().toISOString().split('T')[0],
       categorie: ''
     });
-    setIsAddModalOpen(true);
+    setEstModalAjoutOuvert(true);
   };
 
-  const openEditModal = (depense) => {
-    setSelectedDepense(depense);
-    setFormDepense({
+  const ouvrirModalModification = (depense) => {
+    setDepenseSelectionnee(depense);
+    setFormulaireDepense({
       id: depense.id,
       description: depense.description,
       montant: depense.montant,
       date: depense.date,
       categorie: depense.categorie
     });
-    setIsAddModalOpen(true); // Re-use add modal for editing
+    setEstModalAjoutOuvert(true);
   };
 
-  const openDetailsModal = (depense) => {
-    setSelectedDepense(depense);
-    setIsDetailsModalOpen(true);
+  const ouvrirModalDetails = (depense) => {
+    setDepenseSelectionnee(depense);
+    setEstModalDetailsOuvert(true);
   };
 
-  const closeAddModal = () => {
-    setIsAddModalOpen(false);
-    setSelectedDepense(null); // Clear selected if editing
+  const fermerModalAjout = () => {
+    setEstModalAjoutOuvert(false);
+    setDepenseSelectionnee(null);
   };
 
-  const closeDetailsModal = () => {
-    setIsDetailsModalOpen(false);
-    setSelectedDepense(null);
+  const fermerModalDetails = () => {
+    setEstModalDetailsOuvert(false);
+    setDepenseSelectionnee(null);
   };
 
-  const handleFormChange = (e) => {
+  const gererChangementFormulaire = (e) => {
     const { name, value } = e.target;
-    setFormDepense(prev => ({ ...prev, [name]: value }));
+    setFormulaireDepense(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleAddSubmit = (e) => {
+  const gererSoumissionAjout = (e) => {
     e.preventDefault();
-    if (!formDepense.description || !formDepense.montant || !formDepense.date || !formDepense.categorie) {
+    if (!formulaireDepense.description || !formulaireDepense.montant || !formulaireDepense.date || !formulaireDepense.categorie) {
         alert("Veuillez remplir tous les champs.");
         return;
     }
 
-    if (selectedDepense) { // Editing existing expense
+    if (depenseSelectionnee) {
       setDepenses(prevDepenses => prevDepenses.map(d =>
-        d.id === formDepense.id ? { ...formDepense, montant: parseFloat(formDepense.montant) } : d
+        d.id === formulaireDepense.id ? { ...formulaireDepense, montant: parseFloat(formulaireDepense.montant) } : d
       ));
-      console.log("Dépense modifiée:", { ...formDepense, montant: parseFloat(formDepense.montant) });
-    } else { // Adding new expense
-      const newDepense = {
-        ...formDepense,
-        id: getNextId(),
-        montant: parseFloat(formDepense.montant) // Ensure montant is a number
+      console.log("Dépense modifiée:", { ...formulaireDepense, montant: parseFloat(formulaireDepense.montant) });
+    } else {
+      const nouvelleDepense = {
+        ...formulaireDepense,
+        id: getProchainId(),
+        montant: parseFloat(formulaireDepense.montant)
       };
-      setDepenses(prevDepenses => [...prevDepenses, newDepense]);
-      console.log("Nouvelle dépense ajoutée:", newDepense);
+      setDepenses(prevDepenses => [...prevDepenses, nouvelleDepense]);
+      console.log("Nouvelle dépense ajoutée:", nouvelleDepense);
     }
-    closeAddModal();
+    fermerModalAjout();
   };
 
-  const handleDeleteDepense = (id) => {
+  const gererSuppressionDepense = (id) => {
     if (window.confirm("Êtes-vous sûr de vouloir supprimer cette dépense ?")) {
       setDepenses(prevDepenses => prevDepenses.filter(d => d.id !== id));
       console.log("Dépense supprimée:", id);
     }
   };
 
-  // --- Table Columns Definition ---
-  const columns = [
+  const colonnes = [
     { header: 'Description', accessor: 'description' },
     {
       header: 'Montant',
@@ -233,35 +223,29 @@ const GestionDepenses = () => {
       accessor: 'actions',
       render: (depense) => (
         <div className="flex space-x-2">
-          <Button size="sm" variant="outline" icon={Eye} onClick={() => openDetailsModal(depense)} className="p-2">
-            {/* Détails */}
+          <Button size="sm" variant="outline" icon={Eye} onClick={() => ouvrirModalDetails(depense)} className="p-2">
           </Button>
-          <Button size="sm" variant="info" icon={Edit2} onClick={() => openEditModal(depense)} className="p-2">
-            {/* Modifier */}
+          <Button size="sm" variant="info" icon={Edit2} onClick={() => ouvrirModalModification(depense)} className="p-2">
           </Button>
-          <Button size="sm" variant="danger" icon={Trash2} onClick={() => handleDeleteDepense(depense.id)} className="p-2">
-            {/* Supprimer */}
+          <Button size="sm" variant="danger" icon={Trash2} onClick={() => gererSuppressionDepense(depense.id)} className="p-2">
           </Button>
         </div>
       )
     }
   ];
 
-  // Unique categories for filter dropdown
-  const uniqueCategories = useMemo(() => {
+  const categoriesUniques = useMemo(() => {
     const categories = new Set(initialDepenses.map(d => d.categorie));
     return ['Toutes les catégories', ...Array.from(categories).sort()];
   }, [initialDepenses]);
 
   return (
     <div className="bg-gray-50 min-h-screen p-6">
-      {/* Header */}
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Gestion des Dépenses</h1>
         <p className="text-gray-600 text-lg">Suivi détaillé de toutes les dépenses de l'établissement.</p>
       </div>
 
-      {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         <Card className="p-6 shadow-lg border-l-4 border-blue-500">
           <div className="flex items-center">
@@ -270,7 +254,7 @@ const GestionDepenses = () => {
             </div>
             <div className="ml-4">
               <p className="text-sm text-gray-600">Total dépenses ce mois</p>
-              <p className="text-2xl font-semibold text-gray-900">{stats.totalCurrentMonth.toLocaleString('fr-FR', { style: 'currency', currency: 'XOF' })}</p>
+              <p className="text-2xl font-semibold text-gray-900">{statistiques.totalMoisActuel.toLocaleString('fr-FR', { style: 'currency', currency: 'XOF' })}</p>
             </div>
           </div>
         </Card>
@@ -281,54 +265,50 @@ const GestionDepenses = () => {
             </div>
             <div className="ml-4">
               <p className="text-sm text-gray-600">Total dépenses cette année</p>
-              <p className="text-2xl font-semibold text-gray-900">{stats.totalYear.toLocaleString('fr-FR', { style: 'currency', currency: 'XOF' })}</p>
+              <p className="text-2xl font-semibold text-gray-900">{statistiques.totalAnnee.toLocaleString('fr-FR', { style: 'currency', currency: 'XOF' })}</p>
             </div>
           </div>
         </Card>
       </div>
 
-      {/* Evolution Chart */}
       <Card className="p-6 shadow-lg mb-8">
         <h2 className="text-xl font-semibold text-gray-900 mb-4">Évolution Mensuelle des Dépenses</h2>
-        <div style={{ width: '100%', height: '300px' }}> {/* Set explicit height for ResponsiveContainer */}
+        <div style={{ width: '100%', height: '300px' }}>
           <ResponsiveContainer width="100%" height="100%">
             <LineChart
-              data={depensesEvolutionData}
+              data={donneesEvolutionDepenses}
               margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
             >
               <XAxis dataKey="name" stroke="#6b7280" />
               <YAxis stroke="#6b7280" tickFormatter={(value) => `${(value / 1000).toLocaleString('fr-FR')}K FCFA`} />
               <Tooltip formatter={(value) => `${value.toLocaleString('fr-FR')} FCFA`} />
               <Legend />
-              <Line type="monotone" dataKey="Montant" stroke="#01579B" activeDot={{ r: 8 }} /> {/* Red line for expenses */}
+              <Line type="monotone" dataKey="Montant" stroke="#01579B" activeDot={{ r: 8 }} />
             </LineChart>
           </ResponsiveContainer>
         </div>
       </Card>
 
-      {/* History Table with Filters and Add Button */}
       <Card className="p-6 shadow-lg">
         <div className="mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <h2 className="text-xl font-semibold text-gray-900">Historique des Dépenses</h2>
           <div className="flex flex-wrap items-center gap-4">
-            {/* Search by Description */}
             <div className="relative flex items-center">
               <Search className="absolute left-3 w-4 h-4 text-gray-400" />
               <input
                 type="text"
                 placeholder="Rechercher dépense..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                value={texteRecherche}
+                onChange={(e) => setTexteRecherche(e.target.value)}
                 className="pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
               />
             </div>
 
-            {/* Filter by Period */}
             <div className="relative flex items-center">
               <Calendar className="absolute left-3 w-4 h-4 text-gray-400" />
               <select
-                value={filterPeriod}
-                onChange={(e) => setFilterPeriod(e.target.value)}
+                value={filtrePeriode}
+                onChange={(e) => setFiltrePeriode(e.target.value)}
                 className="pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none text-sm"
               >
                 <option value="">Toute période</option>
@@ -342,15 +322,14 @@ const GestionDepenses = () => {
               </div>
             </div>
 
-            {/* Filter by Category */}
             <div className="relative flex items-center">
               <Tag className="absolute left-3 w-4 h-4 text-gray-400" />
               <select
-                value={filterCategory}
-                onChange={(e) => setFilterCategory(e.target.value)}
+                value={filtreCategorie}
+                onChange={(e) => setFiltreCategorie(e.target.value)}
                 className="pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none text-sm"
               >
-                {uniqueCategories.map(cat => (
+                {categoriesUniques.map(cat => (
                   <option key={cat} value={cat === 'Toutes les catégories' ? '' : cat}>
                     {cat}
                   </option>
@@ -361,27 +340,26 @@ const GestionDepenses = () => {
               </div>
             </div>
 
-            <Button onClick={openAddModal} icon={PlusCircle} className="px-4 py-2">
+            <Button onClick={ouvrirModalAjout} icon={PlusCircle} className="px-4 py-2">
               Ajouter Dépense
             </Button>
           </div>
         </div>
-        <Table columns={columns} data={filteredDepenses} />
+        <Table columns={colonnes} data={depensesFiltrees} />
       </Card>
 
-      {/* Add/Edit Expense Modal */}
       <Modal
-        isOpen={isAddModalOpen}
-        onClose={closeAddModal}
-        title={selectedDepense ? "Modifier la dépense" : "Ajouter une nouvelle dépense"}
+        isOpen={estModalAjoutOuvert}
+        onClose={fermerModalAjout}
+        title={depenseSelectionnee ? "Modifier la dépense" : "Ajouter une nouvelle dépense"}
         size="sm"
       >
-        <form onSubmit={handleAddSubmit} className="space-y-4 p-2">
+        <form onSubmit={gererSoumissionAjout} className="space-y-4 p-2">
           <InputField
             label="Description"
             name="description"
-            value={formDepense.description}
-            onChange={handleFormChange}
+            value={formulaireDepense.description}
+            onChange={gererChangementFormulaire}
             placeholder="Ex: Salaires du mois de juin"
             required
           />
@@ -389,8 +367,8 @@ const GestionDepenses = () => {
             label="Montant (FCFA)"
             name="montant"
             type="number"
-            value={formDepense.montant}
-            onChange={handleFormChange}
+            value={formulaireDepense.montant}
+            onChange={gererChangementFormulaire}
             placeholder="Ex: 1500000"
             required
           />
@@ -398,8 +376,8 @@ const GestionDepenses = () => {
             label="Date"
             name="date"
             type="date"
-            value={formDepense.date}
-            onChange={handleFormChange}
+            value={formulaireDepense.date}
+            onChange={gererChangementFormulaire}
             required
           />
           <div className="relative">
@@ -407,8 +385,8 @@ const GestionDepenses = () => {
             <select
               id="categorie"
               name="categorie"
-              value={formDepense.categorie}
-              onChange={handleFormChange}
+              value={formulaireDepense.categorie}
+              onChange={gererChangementFormulaire}
               className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-700"
               required
             >
@@ -422,33 +400,32 @@ const GestionDepenses = () => {
             </div>
           </div>
           <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
-            <Button variant="outline" onClick={closeAddModal}>
+            <Button variant="outline" onClick={fermerModalAjout}>
               Annuler
             </Button>
             <Button type="submit">
-              {selectedDepense ? "Modifier" : "Ajouter"}
+              {depenseSelectionnee ? "Modifier" : "Ajouter"}
             </Button>
           </div>
         </form>
       </Modal>
 
-      {/* Details Expense Modal */}
       <Modal
-        isOpen={isDetailsModalOpen}
-        onClose={closeDetailsModal}
+        isOpen={estModalDetailsOuvert}
+        onClose={fermerModalDetails}
         title="Détails de la dépense"
         size="sm"
       >
-        {selectedDepense && (
+        {depenseSelectionnee && (
           <div className="space-y-3 text-gray-700 p-2">
             <div className="bg-blue-50 p-3 rounded-lg border border-blue-100">
-              <h3 className="font-bold text-lg text-blue-800 mb-1">{selectedDepense.description}</h3>
-              <p className="text-2xl font-bold text-gray-900">{selectedDepense.montant.toLocaleString('fr-FR', { style: 'currency', currency: 'XOF' })}</p>
+              <h3 className="font-bold text-lg text-blue-800 mb-1">{depenseSelectionnee.description}</h3>
+              <p className="text-2xl font-bold text-gray-900">{depenseSelectionnee.montant.toLocaleString('fr-FR', { style: 'currency', currency: 'XOF' })}</p>
             </div>
-            <p><span className="font-medium">Catégorie:</span> {selectedDepense.categorie}</p>
-            <p><span className="font-medium">Date:</span> {new Date(selectedDepense.date).toLocaleDateString('fr-FR')}</p>
+            <p><span className="font-medium">Catégorie:</span> {depenseSelectionnee.categorie}</p>
+            <p><span className="font-medium">Date:</span> {new Date(depenseSelectionnee.date).toLocaleDateString('fr-FR')}</p>
             <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
-              <Button variant="outline" onClick={closeDetailsModal}>Fermer</Button>
+              <Button variant="outline" onClick={fermerModalDetails}>Fermer</Button>
             </div>
           </div>
         )}

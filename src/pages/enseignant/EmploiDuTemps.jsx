@@ -18,7 +18,7 @@ const EmploiDuTempsEnseignant = () => {
     '08:00-10:00', '10:00-12:00', '12:00-14:00', '14:00-16:00','16:00-18:00'
   ];
 
-  const totalHours = emploisDuTemps.filter(c => c.enseignantId === user.id).length;
+  const totalHours = emploisDuTemps.filter(c => c.enseignantId === user.id).length*2;
   const classesTaught = new Set(emploisDuTemps.filter(c => c.enseignantId === user.id).map(c => c.classeId)).size;
   const roomsUsed = new Set(emploisDuTemps.filter(c => c.enseignantId === user.id).map(c => c.salle)).size;
 

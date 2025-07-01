@@ -19,9 +19,10 @@ import InputField from '../../components/ui/InputField';
 import Modal from '../../components/ui/Modal';
 import Table from '../../components/ui/Table';
 
+import { NavLink } from 'react-router-dom';
 import { classes, enseignants as initialEnseignants, matieres } from '../../data/donneesTemporaires';
 
-const DetailRow = ({ icon: Icon, label, value }) => (
+const LigneDetail = ({ icon: Icon, label, value }) => (
   <div className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg border border-gray-100">
     {Icon && <Icon className="w-5 h-5 text-blue-600 flex-shrink-0 mt-1" />}
     <div>
@@ -34,29 +35,29 @@ const DetailRow = ({ icon: Icon, label, value }) => (
 const Enseignants = () => {
   const [enseignants, setEnseignants] = useState(initialEnseignants);
 
-  const [rechercheTexte, setRechercheTexte] = useState('');
-  const [filtreMatiere, setFiltreMatiere] = useState(''); 
+  const [texteRecherche, setTexteRecherche] = useState('');
+  const [filtreMatiere, setFiltreMatiere] = useState('');
   const [filtreClasse, setFiltreClasse] = useState('');
 
   const [enseignantSelectionne, setEnseignantSelectionne] = useState(null);
   const [modalOuverte, setModalOuverte] = useState(false);
   const [typeModal, setTypeModal] = useState('');
 
-  const getClasseNamesByIds = (classeIds) => {
+  const getNomClassesParIds = (classeIds) => {
     if (!classeIds || classeIds.length === 0) return 'Aucune';
     return classeIds.map(id => classes.find(c => c.id === id)?.nom).filter(Boolean).join(', ');
   };
 
-  const handleFilterChange = (setter, value) => {
+  const gererChangementFiltre = (setter, value) => {
     setter(value);
   };
 
   const enseignantsFiltres = useMemo(() => {
     let EnseignantsTemporaire = enseignants.filter(enseignant => {
       const nomComplet = `${enseignant.prenom || ''} ${enseignant.nom || ''}`.toLowerCase();
-      const correspondRecherche = nomComplet.includes(rechercheTexte.toLowerCase()) ||
-        enseignant.email?.toLowerCase().includes(rechercheTexte.toLowerCase()) ||
-        enseignant.telephone?.toLowerCase().includes(rechercheTexte.toLowerCase());
+      const correspondRecherche = nomComplet.includes(texteRecherche.toLowerCase()) ||
+        enseignant.email?.toLowerCase().includes(texteRecherche.toLowerCase()) ||
+        enseignant.telephone?.toLowerCase().includes(texteRecherche.toLowerCase());
 
       const correspondMatiere = !filtreMatiere || enseignant.matieres.some(matiereId =>
         matieres.find(m => m.id === matiereId)?.nom === filtreMatiere
@@ -71,7 +72,7 @@ const Enseignants = () => {
     });
 
     return EnseignantsTemporaire;
-  }, [enseignants, rechercheTexte, filtreMatiere, filtreClasse]);
+  }, [enseignants, texteRecherche, filtreMatiere, filtreClasse]);
 
   const ouvrirModal = (type, enseignant = null) => {
     setTypeModal(type);
@@ -189,24 +190,20 @@ const Enseignants = () => {
     );
   };
 
-  const columns = [
+  const colonnes = [
     {
       header: 'Enseignant',
       accessor: 'nomComplet',
       render: (enseignant) => (
-        <div className="flex items-center">
-          {/*<img
-            src={enseignant.photo || 'https://images.pexels.com/photos/2726047/pexels-photo-2726047.jpeg?auto=compress&cs=tinysrgb&w=100&h=100&dpr=1'}
-            alt={`${enseignant.prenom} ${enseignant.nom}`}
-            className="h-10 w-10 rounded-full object-cover shadow-sm mr-4"
-          /> */}
-          <div>
-            <div className="text-sm font-medium text-gray-900">
-              {enseignant.prenom} {enseignant.nom}
+        <NavLink to={`./profil/${enseignant.id}`}>
+          <div className="flex items-center">
+            <div>
+              <div className="text-sm font-medium text-gray-900">
+                {enseignant.prenom} {enseignant.nom}
+              </div>
             </div>
-            {/*<div className="text-xs text-gray-500">Enseignant</div> */}
           </div>
-        </div>
+        </NavLink>
       ),
     },
     {
@@ -237,9 +234,8 @@ const Enseignants = () => {
     {
       header: 'Classes',
       accessor: 'classes',
-      render: (enseignant) => getClasseNamesByIds(enseignant.classes),
+      render: (enseignant) => getNomClassesParIds(enseignant.classes),
     },
-
     {
       header: 'Actions',
       accessor: 'actions',
@@ -291,7 +287,6 @@ const Enseignants = () => {
         </div>
       </div>
 
-      {/* Filters */}
       <Card className="p-6 shadow-sm">
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-4">
           <div className="relative">
@@ -299,14 +294,14 @@ const Enseignants = () => {
             <input
               type="text"
               placeholder="Rechercher un enseignant (nom, prénom, email)..."
-              value={rechercheTexte}
-              onChange={(e) => handleFilterChange(setRechercheTexte, e.target.value)}
+              value={texteRecherche}
+              onChange={(e) => gererChangementFiltre(setTexteRecherche, e.target.value)}
               className="pl-10 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-700"
             />
           </div>
           <select
             value={filtreMatiere}
-            onChange={(e) => handleFilterChange(setFiltreMatiere, e.target.value)}
+            onChange={(e) => gererChangementFiltre(setFiltreMatiere, e.target.value)}
             className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-700"
           >
             <option value="">Toutes les matières</option>
@@ -316,7 +311,7 @@ const Enseignants = () => {
           </select>
           <select
             value={filtreClasse}
-            onChange={(e) => handleFilterChange(setFiltreClasse, e.target.value)}
+            onChange={(e) => gererChangementFiltre(setFiltreClasse, e.target.value)}
             className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-700"
           >
             <option value="">Toutes les classes</option>
@@ -327,10 +322,9 @@ const Enseignants = () => {
         </div>
       </Card>
 
-      {/* Table */}
       <Card className="p-0">
         <Table
-          columns={columns}
+          columns={colonnes}
           data={enseignantsFiltres}
           noDataMessage={
             <div className="text-center py-12 text-gray-500">
@@ -342,7 +336,6 @@ const Enseignants = () => {
         />
       </Card>
 
-      {/* Modal ajout/modifier */}
       <Modal
         isOpen={modalOuverte}
         onClose={fermerModal}
@@ -369,10 +362,10 @@ const Enseignants = () => {
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <DetailRow icon={Phone} label="Téléphone" value={enseignantSelectionne?.telephone} />
-              <DetailRow icon={Mail} label="Email" value={enseignantSelectionne?.email} />
-              <DetailRow icon={School} label="Classes enseignées" value={getClasseNamesByIds(enseignantSelectionne?.classes)} />
-              <DetailRow icon={BookOpen} label="Matières enseignées" value={enseignantSelectionne?.matieres.map(id => matieres.find(m => m.id === id)?.nom).filter(Boolean).join(', ') || 'Aucune'} />
+              <LigneDetail icon={Phone} label="Téléphone" value={enseignantSelectionne?.telephone} />
+              <LigneDetail icon={Mail} label="Email" value={enseignantSelectionne?.email} />
+              <LigneDetail icon={School} label="Classes enseignées" value={getNomClassesParIds(enseignantSelectionne?.classes)} />
+              <LigneDetail icon={BookOpen} label="Matières enseignées" value={enseignantSelectionne?.matieres.map(id => matieres.find(m => m.id === id)?.nom).filter(Boolean).join(', ') || 'Aucune'} />
             </div>
             <div className="flex justify-end space-x-3 mt-6 border-t pt-4 border-gray-200">
               <Button onClick={() => ouvrirModal('modifier', enseignantSelectionne)} variant="secondary" icon={Edit}>

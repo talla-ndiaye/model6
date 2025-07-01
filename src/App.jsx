@@ -48,9 +48,11 @@ import PresencesEnfants from './pages/parent/PresencesEnfants';
 
 // Pages Comptable
 
+import ProfilEnseignant from "./pages/admin/ProfilEnseignant";
 import Recus from './pages/comptable/Recus';
 import StatistiquesPaiements from './pages/comptable/Statistiques';
 import TableauDeBordComptable from './pages/comptable/TableauDebord';
+import NotFoundPage from "./pages/PageIntrouvable";
 
 function App() {
   return (
@@ -64,7 +66,7 @@ function App() {
           <Route path="/connexion" element={<Connexion />} />
 
           {/* Touts mes composants seront enveloppés par le Dashbord */}
-          <Route path="/*" element={
+          <Route path="/" element={
               <ProtectedRoute>
                 <DashboardLayout />
               </ProtectedRoute>
@@ -77,6 +79,7 @@ function App() {
             <Route path="admin/eleves" element={<Eleves />} />
             <Route path="admin/eleves/profil/:eleveId" element={<ProfilEleve />} />
             <Route path="admin/enseignants" element={<Enseignants />} />
+            <Route path="admin/enseignants/profil/:enseignantId" element={<ProfilEnseignant />} />
             <Route path="admin/classes" element={<Classes />} />
             <Route path="admin/matieres" element={<Matieres />} />
             <Route path="admin/emplois-du-temps" element={<EmploisDuTemps />} />
@@ -113,8 +116,14 @@ function App() {
             <Route path="comptable/tableau-de-bord" element={<TableauDeBordComptable />} />
             <Route path="comptable/paiements" element={<Recus />} />
             <Route path="comptable/statistiques" element={<StatistiquesPaiements />} />
+
+            
           
           </Route>
+          
+          {/* Route introuvable */}
+          <Route path="*" element={<NotFoundPage />} />
+
           
         </Routes>
       </Router>

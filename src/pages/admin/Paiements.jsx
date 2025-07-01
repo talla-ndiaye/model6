@@ -8,176 +8,166 @@ import Table from '../../components/ui/Table';
 import { classes, eleves, paiements } from '../../data/donneesTemporaires';
 
 const Paiements = () => {
-  const [payments, setPayments] = useState(paiements); // Still need setPayments if other actions are added later, or to simulate data updates
-  const [filterStatut, setFilterStatut] = useState('');
-  const [filterPeriod, setFilterPeriod] = useState('');
-  const [filterClass, setFilterClass] = useState('');
-  const [searchTerm, setSearchTerm] = useState('');
+  const [paiementsData, setPaiementsData] = useState(paiements); 
+  const [filtreStatut, setFiltreStatut] = useState('');
+  const [filtrePeriode, setFiltrePeriode] = useState('');
+  const [filtreClasse, setFiltreClasse] = useState('');
+  const [texteRecherche, setTexteRecherche] = useState('');
 
-  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
-  const [selectedPaymentDetails, setSelectedPaymentDetails] = useState(null);
+  const [estModalDetailsOuvert, setEstModalDetailsOuvert] = useState(false);
+  const [detailsPaiementSelectionne, setDetailsPaiementSelectionne] = useState(null);
 
-  // --- Helper Functions ---
-  const getEleveName = (eleveId) => {
+  const getNomEleve = (eleveId) => {
     const eleve = eleves.find(e => e.id === eleveId);
     return eleve ? `${eleve.prenom} ${eleve.nom}` : 'Élève inconnu';
   };
 
-  const getClassName = (classeId) => {
+  const getNomClasse = (classeId) => {
     const classe = classes.find(c => c.id === classeId);
     return classe ? classe.nom : 'Classe inconnue';
   };
 
-  // The updatePaymentStatus function is no longer called, but kept if you might re-enable it or use it for other internal logic.
-  // If not, it can be fully removed.
-  const updatePaymentStatus = (paymentId, newStatut) => {
-    setPayments(prevPayments => prevPayments.map(payment =>
-      payment.id === paymentId ? { ...payment, statut: newStatut } : payment
-    ));
-    console.log('Mise à jour statut paiement:', paymentId, newStatut);
+  const ouvrirModalDetails = (paiement) => {
+    setDetailsPaiementSelectionne(paiement);
+    setEstModalDetailsOuvert(true);
   };
 
-  // --- Modal Functions for Details ---
-  const openDetailsModal = (payment) => {
-    setSelectedPaymentDetails(payment);
-    setIsDetailsModalOpen(true);
+  const fermerModalDetails = () => {
+    setEstModalDetailsOuvert(false);
+    setDetailsPaiementSelectionne(null);
   };
 
-  const closeDetailsModal = () => {
-    setIsDetailsModalOpen(false);
-    setSelectedPaymentDetails(null);
-  };
+  // filtrage par date
+  const estDateDansPeriode = (datePaiementString, periode) => {
+    const datePaiement = new Date(datePaiementString);
+    const maintenant = new Date();
+    // Réinitialiser l'heure pour une comparaison précise des dates (aujourd'hui, cette_semaine)
+    maintenant.setHours(0,0,0,0); 
 
-  // --- Date Filtering Logic ---
-  const isDateInPeriod = (paymentDateString, period) => {
-    const paymentDate = new Date(paymentDateString);
-    const now = new Date();
-    // Reset time for accurate date comparison (today, this_week)
-    now.setHours(0,0,0,0); 
-
-    switch (period) {
+    switch (periode) {
       case 'today':
-        return paymentDate.toDateString() === now.toDateString();
+        return datePaiement.toDateString() === maintenant.toDateString();
       case 'this_week':
-        const startOfWeek = new Date(now.getFullYear(), now.getMonth(), now.getDate() - now.getDay()); // Sunday (adjust if your week starts on Monday)
-        const endOfWeek = new Date(now.getFullYear(), now.getMonth(), now.getDate() - now.getDay() + 6); // Saturday
-        return paymentDate >= startOfWeek && paymentDate <= endOfWeek;
+        const debutSemaine = new Date(maintenant.getFullYear(), maintenant.getMonth(), maintenant.getDate() - maintenant.getDay());
+        const finSemaine = new Date(maintenant.getFullYear(), maintenant.getMonth(), maintenant.getDate() - maintenant.getDay() + 6); 
+        return datePaiement >= debutSemaine && datePaiement <= finSemaine;
       case 'this_month':
-        return paymentDate.getMonth() === now.getMonth() && paymentDate.getFullYear() === now.getFullYear();
+        return datePaiement.getMonth() === maintenant.getMonth() && datePaiement.getFullYear() === maintenant.getFullYear();
       case 'this_year':
-        return paymentDate.getFullYear() === now.getFullYear();
+        return datePaiement.getFullYear() === maintenant.getFullYear();
       default:
-        return true; // No period filter
+        return true; // Pas de filtre de période
     }
   };
 
-  // --- Data Filtering and Memoization ---
-  const filteredPayments = useMemo(() => {
-    let currentPayments = payments;
+  // --- Filtrage des données et mémorisation ---
+  const paiementsFiltres = useMemo(() => {
+    let paiementsActuels = paiementsData;
 
-    // Filter by Status
-    if (filterStatut !== '') {
-      currentPayments = currentPayments.filter(payment => payment.statut === filterStatut);
+    // Filtrer par statut
+    if (filtreStatut !== '') {
+      paiementsActuels = paiementsActuels.filter(paiement => paiement.statut === filtreStatut);
     }
-    // Filter by Period
-    if (filterPeriod !== '') {
-      currentPayments = currentPayments.filter(payment => isDateInPeriod(payment.date, filterPeriod));
+    // Filtrer par période
+    if (filtrePeriode !== '') {
+      paiementsActuels = paiementsActuels.filter(paiement => estDateDansPeriode(paiement.date, filtrePeriode));
     }
-    // Filter by Class
-    if (filterClass !== '') {
-      currentPayments = currentPayments.filter(payment => {
-        const eleve = eleves.find(e => e.id === payment.eleveId);
-        return eleve && String(eleve.classeId) === String(filterClass);
+    // Filtrer par classe
+    if (filtreClasse !== '') {
+      paiementsActuels = paiementsActuels.filter(paiement => {
+        const eleve = eleves.find(e => e.id === paiement.eleveId);
+        return eleve && String(eleve.classeId) === String(filtreClasse);
       });
     }
-    // Search by Student Name
-    if (searchTerm) {
-      const lowerCaseSearchTerm = searchTerm.toLowerCase();
-      currentPayments = currentPayments.filter(payment =>
-        getEleveName(payment.eleveId).toLowerCase().includes(lowerCaseSearchTerm)
+    // Rechercher par nom d'élève
+    if (texteRecherche) {
+      const texteRechercheMin = texteRecherche.toLowerCase();
+      paiementsActuels = paiementsActuels.filter(paiement =>
+        getNomEleve(paiement.eleveId).toLowerCase().includes(texteRechercheMin)
       );
     }
-    return currentPayments;
-  }, [payments, filterStatut, filterPeriod, filterClass, searchTerm]);
+    return paiementsActuels;
+  }, [paiementsData, filtreStatut, filtrePeriode, filtreClasse, texteRecherche]);
 
-  // --- Statistics Calculation ---
-  const stats = useMemo(() => {
-    const total = payments.reduce((sum, p) => sum + p.montant, 0);
-    const paye = payments.filter(p => p.statut === 'Payé').reduce((sum, p) => sum + p.montant, 0);
-    const enAttente = payments.filter(p => p.statut === 'En attente').reduce((sum, p) => sum + p.montant, 0);
-    const enRetard = payments.filter(p => p.statut === 'En retard').reduce((sum, p) => sum + p.montant, 0);
+  // --- Calcul des statistiques ---
+  const statistiques = useMemo(() => {
+    const total = paiementsData.reduce((somme, p) => somme + p.montant, 0);
+    const paye = paiementsData.filter(p => p.statut === 'Payé').reduce((somme, p) => somme + p.montant, 0);
+    const enAttente = paiementsData.filter(p => p.statut === 'En attente').reduce((somme, p) => somme + p.montant, 0);
+    const enRetard = paiementsData.filter(p => p.statut === 'En retard').reduce((somme, p) => somme + p.montant, 0);
     const tauxCollecte = total > 0 ? ((paye / total) * 100).toFixed(1) : 0;
 
     return { total, paye, enAttente, enRetard, tauxCollecte };
-  }, [payments]);
+  }, [paiementsData]);
 
-  // --- Table Columns Definition ---
-  const columns = [
+  //  colonnes du tableau ---
+  const colonnes = [
     {
       header: 'Élève',
       accessor: 'eleveId',
-      render: (payment) => getEleveName(payment.eleveId)
+      render: (paiement) => getNomEleve(paiement.eleveId)
     },
     {
       header: 'Classe',
       accessor: 'classeId',
-      render: (payment) => {
-        const eleve = eleves.find(e => e.id === payment.eleveId);
-        return eleve ? getClassName(eleve.classeId) : 'N/A';
+      render: (paiement) => {
+        const eleve = eleves.find(e => e.id === paiement.eleveId);
+        return eleve ? getNomClasse(eleve.classeId) : 'N/A';
       }
     },
     {
       header: 'Type',
       accessor: 'type',
-      render: (payment) => (
+      render: (paiement) => (
         <span className={`px-2 py-1 text-xs rounded-full ${
-          payment.type === 'Scolarité' ? 'bg-blue-100 text-blue-800' :
-          payment.type === 'Cantine' ? 'bg-green-100 text-green-800' :
-          payment.type === 'Activités' ? 'bg-purple-100 text-purple-800' :
+          paiement.type === 'Frais de scolarité' ? 'bg-blue-100 text-blue-800' : 
+          paiement.type === 'Cotisation APEL' ? 'bg-green-100 text-green-800' : 
+          paiement.type === 'Activité sportive' ? 'bg-purple-100 text-purple-800' : 
+          paiement.type === 'Contribution voyage scolaire' ? 'bg-indigo-100 text-indigo-800' : 
+          paiement.type === 'Achats fournitures' ? 'bg-pink-100 text-pink-800' : 
           'bg-gray-100 text-gray-800'
         }`}>
-          {payment.type}
+          {paiement.type}
         </span>
       )
     },
     {
       header: 'Montant',
       accessor: 'montant',
-      render: (payment) => `${payment.montant.toLocaleString('fr-FR', { style: 'currency', currency: 'XOF' })}`
+      render: (paiement) => `${paiement.montant.toLocaleString('fr-FR', { style: 'currency', currency: 'XOF' })}`
     },
     {
       header: 'Statut',
       accessor: 'statut',
-      render: (payment) => (
+      render: (paiement) => (
         <span className={`px-2 py-1 text-xs rounded-full flex items-center gap-1 ${
-          payment.statut === 'Payé' ? 'bg-green-100 text-green-800' :
-          payment.statut === 'En attente' ? 'bg-yellow-100 text-yellow-800' :
-          payment.statut === 'En retard' ? 'bg-red-100 text-red-800' :
+          paiement.statut === 'Payé' ? 'bg-green-100 text-green-800' :
+          paiement.statut === 'En attente' ? 'bg-yellow-100 text-yellow-800' :
+          paiement.statut === 'En retard' ? 'bg-red-100 text-red-800' :
           'bg-gray-100 text-gray-800'
         }`}>
-          {payment.statut === 'Payé' && <CheckCircle className="w-3 h-3" />}
-          {payment.statut === 'En attente' && <AlertCircle className="w-3 h-3" />}
-          {payment.statut === 'En retard' && <Clock className="w-3 h-3" />}
-          {payment.statut}
+          {paiement.statut === 'Payé' && <CheckCircle className="w-3 h-3" />}
+          {paiement.statut === 'En attente' && <AlertCircle className="w-3 h-3" />}
+          {paiement.statut === 'En retard' && <Clock className="w-3 h-3" />}
+          {paiement.statut}
         </span>
       )
     },
     {
       header: 'Date',
       accessor: 'date',
-      render: (payment) => new Date(payment.date).toLocaleDateString('fr-FR')
+      render: (paiement) => new Date(paiement.date).toLocaleDateString('fr-FR')
     },
     { header: 'Méthode', accessor: 'methode' },
     {
       header: 'Actions',
       accessor: 'actions',
-      render: (payment) => (
+      render: (paiement) => (
         <div className="flex space-x-2">
-          {/* Removed "Marquer payé" button */}
           <Button
             size="sm"
             variant="outline"
-            onClick={() => openDetailsModal(payment)}
+            onClick={() => ouvrirModalDetails(paiement)}
             className="px-3 py-1 text-xs"
             icon={Eye}
           >
@@ -188,23 +178,22 @@ const Paiements = () => {
     }
   ];
 
-  // --- Unique filter options for dropdowns ---
-  const uniqueClasses = useMemo(() => {
-    const classIdsWithPayments = new Set(paiements.map(p => eleves.find(e => e.id === p.eleveId)?.classeId).filter(Boolean));
-    const classesWithPayments = classes.filter(c => classIdsWithPayments.has(c.id));
-    return ['Toutes les classes', ...classesWithPayments.map(c => c.nom)];
+  //classes uniques ayant des paiements associés
+  const classesUniques = useMemo(() => {
+    const idsClassesAvecPaiements = new Set(paiements.map(p => eleves.find(e => e.id === p.eleveId)?.classeId).filter(Boolean));
+    const classesAvecPaiements = classes.filter(c => idsClassesAvecPaiements.has(c.id));
+    return ['Toutes les classes', ...classesAvecPaiements.map(c => c.nom)];
   }, [paiements, eleves, classes]);
-
 
   return (
     <div className="bg-gray-50 min-h-screen p-6">
-      {/* Page Header */}
+      {/* En-tête */}
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Gestion des Paiements</h1>
         <p className="text-gray-600 text-lg">Suivi complet des paiements et de la situation financière des élèves.</p>
       </div>
 
-      {/* Statistics Cards */}
+      {/* KPIs */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <Card className="p-6 shadow-lg border-l-4 border-blue-500">
           <div className="flex items-center">
@@ -213,7 +202,7 @@ const Paiements = () => {
             </div>
             <div className="ml-4">
               <p className="text-sm text-gray-600">Montant total attendu</p>
-              <p className="text-2xl font-semibold text-gray-900">{stats.total.toLocaleString('fr-FR', { style: 'currency', currency: 'XOF' })}</p>
+              <p className="text-2xl font-semibold text-gray-900">{statistiques.total.toLocaleString('fr-FR', { style: 'currency', currency: 'XOF' })}</p>
             </div>
           </div>
         </Card>
@@ -225,7 +214,7 @@ const Paiements = () => {
             </div>
             <div className="ml-4">
               <p className="text-sm text-gray-600">Total encaissé</p>
-              <p className="text-2xl font-semibold text-gray-900">{stats.paye.toLocaleString('fr-FR', { style: 'currency', currency: 'XOF' })}</p>
+              <p className="text-2xl font-semibold text-gray-900">{statistiques.paye.toLocaleString('fr-FR', { style: 'currency', currency: 'XOF' })}</p>
             </div>
           </div>
         </Card>
@@ -237,7 +226,7 @@ const Paiements = () => {
             </div>
             <div className="ml-4">
               <p className="text-sm text-gray-600">Montant en attente</p>
-              <p className="text-2xl font-semibold text-gray-900">{stats.enAttente.toLocaleString('fr-FR', { style: 'currency', currency: 'XOF' })}</p>
+              <p className="text-2xl font-semibold text-gray-900">{statistiques.enAttente.toLocaleString('fr-FR', { style: 'currency', currency: 'XOF' })}</p>
             </div>
           </div>
         </Card>
@@ -249,36 +238,36 @@ const Paiements = () => {
             </div>
             <div className="ml-4">
               <p className="text-sm text-gray-600">Montant en retard</p>
-              <p className="text-2xl font-semibold text-gray-900">{stats.enRetard.toLocaleString('fr-FR', { style: 'currency', currency: 'XOF' })}</p>
-              <p className="text-sm text-gray-600 mt-1">Taux de collecte: <span className="font-semibold text-blue-600">{stats.tauxCollecte}%</span></p>
+              <p className="text-2xl font-semibold text-gray-900">{statistiques.enRetard.toLocaleString('fr-FR', { style: 'currency', currency: 'XOF' })}</p>
+              <p className="text-sm text-gray-600 mt-1">Taux de collecte: <span className="font-semibold text-blue-600">{statistiques.tauxCollecte}%</span></p>
             </div>
           </div>
         </Card>
       </div>
 
-      {/* Payments List with Filters */}
+      {/* Paiements */}
       <Card className="p-6 shadow-lg">
         <div className="mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <h2 className="text-2xl font-semibold text-gray-900">Détails des Paiements</h2>
           <div className="flex flex-wrap items-center gap-4">
-            {/* Search by Student Name */}
+            {/* Rechercher par nom ou prénom, ou matricule ou téléphone */}
             <div className="relative flex items-center">
               <Search className="absolute left-3 w-4 h-4 text-gray-400" />
               <input
                 type="text"
                 placeholder="Rechercher élève..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                value={texteRecherche}
+                onChange={(e) => setTexteRecherche(e.target.value)}
                 className="pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
               />
             </div>
 
-            {/* Filter by Period */}
+            {/* Filtre par Période */}
             <div className="relative flex items-center">
               <Calendar className="absolute left-3 w-4 h-4 text-gray-400" />
               <select
-                value={filterPeriod}
-                onChange={(e) => setFilterPeriod(e.target.value)}
+                value={filtrePeriode}
+                onChange={(e) => setFiltrePeriode(e.target.value)}
                 className="pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none text-sm"
               >
                 <option value="">Toute période</option>
@@ -292,12 +281,12 @@ const Paiements = () => {
               </div>
             </div>
 
-            {/* Filter by Status */}
+            {/* Filtre par statut */}
             <div className="relative flex items-center">
               <Filter className="absolute left-3 w-4 h-4 text-gray-400" />
               <select
-                value={filterStatut}
-                onChange={(e) => setFilterStatut(e.target.value)}
+                value={filtreStatut}
+                onChange={(e) => setFiltreStatut(e.target.value)}
                 className="pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none text-sm"
               >
                 <option value="">Tous les statuts</option>
@@ -310,17 +299,17 @@ const Paiements = () => {
               </div>
             </div>
 
-            {/* Filter by Class */}
+            {/* Filtre par Classe */}
             <div className="relative flex items-center">
               <Users className="absolute left-3 w-4 h-4 text-gray-400" />
               <select
-                value={filterClass}
-                onChange={(e) => setFilterClass(e.target.value)}
+                value={filtreClasse}
+                onChange={(e) => setFiltreClasse(e.target.value)}
                 className="pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none text-sm"
               >
-                {uniqueClasses.map(classeName => (
-                  <option key={classeName} value={classeName === 'Toutes les classes' ? '' : classes.find(c => c.nom === classeName)?.id || ''}>
-                    {classeName}
+                {classesUniques.map(nomClasse => (
+                  <option key={nomClasse} value={nomClasse === 'Toutes les classes' ? '' : classes.find(c => c.nom === nomClasse)?.id || ''}>
+                    {nomClasse}
                   </option>
                 ))}
               </select>
@@ -331,42 +320,41 @@ const Paiements = () => {
           </div>
         </div>
 
-        <Table columns={columns} data={filteredPayments} />
+        <Table columns={colonnes} data={paiementsFiltres} />
       </Card>
 
-      {/* Payment Details Modal */}
+      {/* Modal Détails Paiement */}
       <Modal
-        isOpen={isDetailsModalOpen}
-        onClose={closeDetailsModal}
+        isOpen={estModalDetailsOuvert}
+        onClose={fermerModalDetails}
         title="Détails du Paiement"
         size="md"
       >
-        {selectedPaymentDetails && (
+        {detailsPaiementSelectionne && (
           <div className="space-y-4 text-gray-700">
             <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
-              <h3 className="font-bold text-lg text-blue-800 mb-2">Paiement pour {getEleveName(selectedPaymentDetails.eleveId)}</h3>
-              <p><span className="font-medium">Montant:</span> {selectedPaymentDetails.montant.toLocaleString('fr-FR', { style: 'currency', currency: 'XOF' })}</p>
-              <p><span className="font-medium">Type:</span> {selectedPaymentDetails.type}</p>
+              <h3 className="font-bold text-lg text-blue-800 mb-2">Paiement pour {getNomEleve(detailsPaiementSelectionne.eleveId)}</h3>
+              <p><span className="font-medium">Montant:</span> {detailsPaiementSelectionne.montant.toLocaleString('fr-FR', { style: 'currency', currency: 'XOF' })}</p>
+              <p><span className="font-medium">Type:</span> {detailsPaiementSelectionne.type}</p>
               <p><span className="font-medium">Statut:</span> <span className={`px-2 py-0.5 text-sm rounded-full ${
-                selectedPaymentDetails.statut === 'Payé' ? 'bg-green-100 text-green-800' :
-                selectedPaymentDetails.statut === 'En attente' ? 'bg-yellow-100 text-yellow-800' :
+                detailsPaiementSelectionne.statut === 'Payé' ? 'bg-green-100 text-green-800' :
+                detailsPaiementSelectionne.statut === 'En attente' ? 'bg-yellow-100 text-yellow-800' :
                 'bg-red-100 text-red-800'
-              }`}>{selectedPaymentDetails.statut}</span></p>
+              }`}>{detailsPaiementSelectionne.statut}</span></p>
             </div>
-            <p><span className="font-medium">Date:</span> {new Date(selectedPaymentDetails.date).toLocaleDateString('fr-FR')}</p>
-            {selectedPaymentDetails.dateEcheance && (
-              <p><span className="font-medium">Date d'échéance:</span> {new Date(selectedPaymentDetails.dateEcheance).toLocaleDateString('fr-FR')}</p>
+            <p><span className="font-medium">Date:</span> {new Date(detailsPaiementSelectionne.date).toLocaleDateString('fr-FR')}</p>
+            {detailsPaiementSelectionne.dateEcheance && (
+              <p><span className="font-medium">Date d'échéance:</span> {new Date(detailsPaiementSelectionne.dateEcheance).toLocaleDateString('fr-FR')}</p>
             )}
-            <p><span className="font-medium">Méthode:</span> {selectedPaymentDetails.methode || 'N/A'}</p>
-            {selectedPaymentDetails.description && (
-              <p><span className="font-medium">Description:</span> {selectedPaymentDetails.description}</p>
+            <p><span className="font-medium">Méthode:</span> {detailsPaiementSelectionne.methode || 'N/A'}</p>
+            {detailsPaiementSelectionne.description && (
+              <p><span className="font-medium">Description:</span> {detailsPaiementSelectionne.description}</p>
             )}
-            {selectedPaymentDetails.reference && (
-              <p><span className="font-medium">Référence:</span> {selectedPaymentDetails.reference}</p>
+            {detailsPaiementSelectionne.reference && (
+              <p><span className="font-medium">Référence:</span> {detailsPaiementSelectionne.reference}</p>
             )}
             <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
-              {/* Removed "Marquer comme payé" button from here too */}
-              <Button variant="outline" onClick={closeDetailsModal}>Fermer</Button>
+              <Button variant="outline" onClick={fermerModalDetails}>Fermer</Button>
             </div>
           </div>
         )}
