@@ -125,7 +125,7 @@ export const enseignants = [
     prenom: 'Moussa',
     email: 'prof@ecole.sn',
     telephone: '702345678',
-    matieres: [1, 2], // IDs de matières
+    matieres: [1, 2, 3], // IDs de matières
     classes: [1, 2] // IDs de classes où il enseigne
   },
   {
@@ -248,23 +248,25 @@ export const emploisDuTemps = [
 export const notes = [
   {
     id: 1,
-    eleveId: 1, // Lucas Ndiaye
+    eleveId: 1, // Talla Ndiaye
     matiereId: 1, // Mathématiques
     note: 15.5,
     coefficient: 2,
     date: '2025-05-10', // Année actuelle au Sénégal
     type: 'Composition', // Terme plus courant au Sénégal
-    commentaire: 'Excellente maîtrise des concepts.'
+    commentaire: 'Excellente maîtrise des concepts.',
+    enseignantId: 2
   },
   {
     id: 2,
-    eleveId: 1, // Lucas Ndiaye
+    eleveId: 1, // Ndiaye Ndiaye
     matiereId: 2, // Français
     note: 12.0,
     coefficient: 1,
     date: '2025-05-15',
     type: 'Interrogation',
-    commentaire: 'Bonne expression écrite, à améliorer sur la grammaire.'
+    commentaire: 'Bonne expression écrite, à améliorer sur la grammaire.',
+    enseignantId: 2
   },
   {
     id: 3,
@@ -274,7 +276,19 @@ export const notes = [
     coefficient: 3,
     date: '2025-05-20',
     type: 'Devoir surveillé',
-    commentaire: 'Résultats exceptionnels.'
+    commentaire: 'Résultats exceptionnels.',
+    enseignantId: 2
+  },
+  {
+    id: 3,
+    eleveId: 2, // Mariama Ndiaye
+    matiereId: 2, // SVT
+    note: 16.0,
+    coefficient: 3,
+    date: '2025-05-20',
+    type: 'Devoir surveillé',
+    commentaire: 'Résultats exceptionnels.',
+    enseignantId: 1
   }
 ];
 

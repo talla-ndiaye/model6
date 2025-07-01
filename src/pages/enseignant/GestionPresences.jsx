@@ -1,60 +1,74 @@
-import { AlertCircle, Calendar, CheckCircle, Clock, Users, UserX, XCircle } from 'lucide-react'; // Added Edit icon
-import { useEffect, useMemo, useState } from 'react'; // Added useEffect and useMemo
+import { AlertCircle, Calendar, CheckCircle, Clock, Edit, Users, UserX, XCircle } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
+import InputField from '../../components/ui/InputField';
 import Modal from '../../components/ui/Modal';
 import { useAuth } from '../../context/AuthContext';
-import { classes, eleves, presences as initialPresences } from '../../data/donneesTemporaires'; // Ensure presences are mutable
+import { classes, presences as donneesPresencesInitiales, eleves, enseignants } from '../../data/donneesTemporaires';
 
 const GestionPresences = () => {
-  const { user } = useAuth(); // Assuming user has 'id' and 'classes' (array of class IDs they are assigned to teach)
-  const [presences, setPresences] = useState(initialPresences);
-  const [selectedClass, setSelectedClass] = useState('');
-  // Default date to today
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
-  const [showModal, setShowModal] = useState(false);
-  const [selectedStudentForComment, setSelectedStudentForComment] = useState(null); // Renamed to avoid conflict
+  const { user } = useAuth();
+  const [presences, setPresences] = useState(donneesPresencesInitiales);
+  const [classeSelectionnee, setClasseSelectionnee] = useState('');
+  const [dateSelectionnee, setDateSelectionnee] = useState(new Date().toISOString().split('T')[0]);
+  const [afficherModalSignalement, setAfficherModalSignalement] = useState(false);
+  const [eleveSelectionnePourSignalement, setEleveSelectionnePourSignalement] = useState(null);
 
-  // Get classes assigned to the logged-in teacher
-  // Assuming 'user.classes' is an array of class IDs, or they are a principal teacher
-  const mesClasses = useMemo(() => classes.filter(classe =>
-    classe.enseignantPrincipal === user.id || (user.classes && user.classes.includes(classe.id))
-  ), [user]);
+  const [formulaireSignalement, setFormulaireSignalement] = useState({
+    statut: 'absent',
+    commentaire: ''
+  });
 
-  // Get students relevant to the selected class
-  const elevesClasse = useMemo(() => {
-    return selectedClass
-      ? eleves.filter(eleve => String(eleve.classeId) === String(selectedClass))
-      : []; // Only show students if a class is selected
-  }, [selectedClass]);
+  const enseignantConnecte = useMemo(() => {
+    return user?.role === 'enseignant'
+      ? enseignants.find(e => e.id === user.id)
+      : null;
+  }, [user, enseignants]);
+  
+  const mesClasses = useMemo(() => {
+    return enseignantConnecte ? classes.filter(classe => enseignantConnecte.classes?.includes(classe.id)) : [];
+  }, [enseignantConnecte, classes]);
+  
+  const elevesDeLaClasseSelectionnee = useMemo(() => {
+    return classeSelectionnee
+      ? eleves.filter(eleve => String(eleve.classeId) === String(classeSelectionnee))
+              .sort((a, b) => {
+                const nomA = a.nom.toLowerCase();
+                const nomB = b.nom.toLowerCase();
+                if (nomA < nomB) return -1;
+                if (nomA > nomB) return 1;
+                const prenomA = b.prenom.toLowerCase();
+                const prenomB = b.prenom.toLowerCase(); 
+                if (prenomA < prenomB) return -1;
+                if (prenomA > prenomB) return 1;
+                return 0;
+              })
+      : [];
+  }, [classeSelectionnee, eleves]);
 
-  // --- Effect to default students to 'present' and manage presence records ---
   useEffect(() => {
-    if (!selectedClass) {
-      // If no class is selected, clear stats or show guidance
-      // No automatic presence marking needed without a selected class
+    if (!classeSelectionnee) {
       return;
     }
 
-    // Identify students in the selected class who DO NOT have a record for the selected date
-    const studentsWithoutRecord = elevesClasse.filter(eleve =>
+    const elevesSansEnregistrement = elevesDeLaClasseSelectionnee.filter(eleve =>
       !presences.some(p =>
         String(p.eleveId) === String(eleve.id) &&
-        p.date === selectedDate &&
-        String(p.classeId) === String(selectedClass)
+        p.date === dateSelectionnee &&
+        String(p.classeId) === String(classeSelectionnee)
       )
     );
 
-    // Create new 'present' records for these students
-    const newPresentRecords = studentsWithoutRecord.map(eleve => ({
-      id: Math.random().toString(36).substr(2, 9), // Simple unique ID for new records
+    const nouveauxEnregistrementsPresents = elevesSansEnregistrement.map(eleve => ({
+      id: Math.random().toString(36).substr(2, 9),
       eleveId: eleve.id,
-      date: selectedDate,
-      statut: 'present', // Default to present
-      heureDebut: '08:00', // Default times
+      date: dateSelectionnee,
+      statut: 'present',
+      heureDebut: '08:00',
       heureFin: '17:00',
-      enseignantId: user.id, // Teacher marking presence
-      classeId: parseInt(selectedClass),
+      enseignantId: user.id,
+      classeId: parseInt(classeSelectionnee),
       justifie: false,
       motifJustification: '',
       commentaire: '',
@@ -62,77 +76,70 @@ const GestionPresences = () => {
       dateModification: new Date().toISOString()
     }));
 
-    // Add these new records to the state
-    if (newPresentRecords.length > 0) {
-      setPresences(prevPresences => [...prevPresences, ...newPresentRecords]);
+    if (nouveauxEnregistrementsPresents.length > 0) {
+      setPresences(prevPresences => [...prevPresences, ...nouveauxEnregistrementsPresents]);
     }
-  }, [selectedClass, selectedDate, elevesClasse, presences, user]); // Depend on relevant state
+  }, [classeSelectionnee, dateSelectionnee, elevesDeLaClasseSelectionnee, presences, user]);
 
-  // Filter existing presences for the selected date and class
-  const presencesDuJourFiltered = useMemo(() => {
+  const presencesDuJourFiltrees = useMemo(() => {
     return presences.filter(p =>
-      p.date === selectedDate &&
-      String(p.classeId) === String(selectedClass)
+      p.date === dateSelectionnee &&
+      String(p.classeId) === String(classeSelectionnee)
     );
-  }, [presences, selectedDate, selectedClass]);
+  }, [presences, dateSelectionnee, classeSelectionnee]);
 
-  // Prepare data for the table, linking each student to their presence record
-  const tableData = useMemo(() => {
-    if (!selectedClass) return []; // No table data if no class is selected
+  const donneesTableau = useMemo(() => {
+    if (!classeSelectionnee) return [];
 
-    return elevesClasse.map(eleve => {
-      const presenceRecord = presencesDuJourFiltered.find(p => String(p.eleveId) === String(eleve.id));
-      // Always return a record for each student in the class, even if it's a 'virtual' one
+    return elevesDeLaClasseSelectionnee.map(eleve => {
+      const enregistrementPresence = presencesDuJourFiltrees.find(p => String(p.eleveId) === String(eleve.id));
       return {
-        // Use an actual ID if present, otherwise a temp ID for consistency
-        id: presenceRecord?.id || `temp-${eleve.id}-${selectedDate}`,
+        id: enregistrementPresence?.id || `temp-${eleve.id}-${dateSelectionnee}`,
         eleveId: eleve.id,
         classeId: eleve.classeId,
-        date: selectedDate,
-        statut: presenceRecord?.statut || 'present', // Default to 'present' if no record
-        heureDebut: presenceRecord?.heureDebut || '08:00',
-        heureFin: presenceRecord?.heureFin || '17:00',
-        enseignantId: presenceRecord?.enseignantId || user.id,
-        justifie: presenceRecord?.justifie || false,
-        motifJustification: presenceRecord?.motifJustification || '',
-        commentaire: presenceRecord?.commentaire || ''
+        date: dateSelectionnee,
+        statut: enregistrementPresence?.statut || 'present',
+        heureDebut: enregistrementPresence?.heureDebut || '08:00',
+        heureFin: enregistrementPresence?.heureFin || '17:00',
+        enseignantId: enregistrementPresence?.enseignantId || user.id,
+        justifie: false,
+        motifJustification: '',
+        commentaire: ''
       };
     });
-  }, [selectedClass, elevesClasse, presencesDuJourFiltered, selectedDate, user]);
+  }, [classeSelectionnee, elevesDeLaClasseSelectionnee, presencesDuJourFiltrees, dateSelectionnee, user]);
 
-
-  // --- Helper Functions ---
-  const getEleveName = (eleveId) => {
+  const getNomEleve = (eleveId) => {
     const eleve = eleves.find(e => e.id === eleveId);
     return eleve ? `${eleve.prenom} ${eleve.nom}` : 'Élève inconnu';
   };
 
-  const getClassName = (classeId) => {
+  const getNomClasse = (classeId) => {
     const classe = classes.find(c => c.id === classeId);
     return classe ? classe.nom : 'Classe inconnue';
   };
 
-  const getStatusIcon = (statut) => {
+  const getIconeStatut = (statut) => {
     switch (statut) {
       case 'present': return <CheckCircle className="w-5 h-5 text-green-600" />;
       case 'absent': return <XCircle className="w-5 h-5 text-red-600" />;
       case 'retard': return <Clock className="w-5 h-5 text-orange-600" />;
       case 'renvoye': return <UserX className="w-5 h-5 text-purple-600" />;
-      default: return <AlertCircle className="w-5 h-5 text-gray-400" />; // Should not happen with default logic
+      default: return <AlertCircle className="w-5 h-5 text-gray-400" />;
     }
   };
 
-  const getStatusLabel = (statut) => {
+  const getLibelleStatut = (statut) => {
     switch (statut) {
       case 'present': return 'Présent';
       case 'absent': return 'Absent';
       case 'retard': return 'En retard';
       case 'renvoye': return 'Renvoyé';
-      default: return 'Inconnu'; // Fallback
+      default: return 'Inconnu';
     }
   };
 
-  const getStatusColor = (statut) => {
+  const getCouleurStatut = (statut) => {
     switch (statut) {
       case 'present': return 'bg-green-100 text-green-800';
       case 'absent': return 'bg-red-100 text-red-800';
@@ -142,108 +149,88 @@ const GestionPresences = () => {
     }
   };
 
-  // --- Handlers for Status Change & Comment Modal ---
-  const handleStatusChange = (eleveId, newStatus) => {
-    const now = new Date().toISOString();
-    const eleveInContext = elevesClasse.find(e => String(e.id) === String(eleveId));
+  const ouvrirModalSignalement = (eleve) => {
+    setEleveSelectionnePourSignalement(eleve);
+    const enregistrementExistant = presencesDuJourFiltrees.find(p => String(p.eleveId) === String(eleve.id));
+    setFormulaireSignalement({
+      statut: enregistrementExistant?.statut === 'present' ? 'absent' : enregistrementExistant?.statut || 'absent',
+      commentaire: enregistrementExistant?.commentaire || ''
+    });
+    setAfficherModalSignalement(true);
+  };
 
-    if (!eleveInContext) {
-      console.error("Student not found in current class context.");
-      return;
-    }
+  const gererSoumissionSignalement = (e) => {
+    e.preventDefault();
+    const { statut, commentaire } = formulaireSignalement;
+    const now = new Date().toISOString();
 
     setPresences(prevPresences => {
-      const existingPresenceIndex = prevPresences.findIndex(p =>
-        String(p.eleveId) === String(eleveId) &&
-        p.date === selectedDate &&
-        String(p.classeId) === String(selectedClass)
+      const indexExistant = prevPresences.findIndex(p =>
+        String(p.eleveId) === String(eleveSelectionnePourSignalement.id) &&
+        p.date === dateSelectionnee &&
+        String(p.classeId) === String(classeSelectionnee)
       );
 
-      if (existingPresenceIndex > -1) {
-        // Update existing presence record
+      if (indexExistant > -1) {
         return prevPresences.map((p, index) =>
-          index === existingPresenceIndex
-            ? { ...p, statut: newStatus, dateModification: now, justifie: newStatus === 'present' ? false : p.justifie } // Reset justification if present
+          index === indexExistant
+            ? {
+                ...p,
+                statut: statut,
+                commentaire: commentaire,
+                justifie: false,
+                dateModification: now
+              }
             : p
         );
       } else {
-        // Create a new presence record
-        const newPresence = {
-          id: Math.max(...presences.map(p => p.id)).toString() + 'n', // Simple unique ID for new records
-          eleveId: eleveId,
-          date: selectedDate,
-          statut: newStatus,
+        const nouvelEnregistrement = {
+          id: Math.random().toString(36).substr(2, 9),
+          eleveId: eleveSelectionnePourSignalement.id,
+          date: dateSelectionnee,
+          statut: statut,
           heureDebut: '08:00',
           heureFin: '17:00',
           enseignantId: user.id,
-          classeId: parseInt(selectedClass),
-          justifie: newStatus === 'present' ? false : false, // Default to not justified for absent/retard/renvoye
+          classeId: parseInt(classeSelectionnee),
+          justifie: false,
           motifJustification: '',
           commentaire: '',
           dateCreation: now,
           dateModification: now
         };
-        return [...prevPresences, newPresence];
+        return [...prevPresences, nouvelEnregistrement];
       }
     });
-    console.log(`Présence mise à jour: Élève ${eleveId}, Statut: ${newStatus}`);
+
+    setAfficherModalSignalement(false);
+    setEleveSelectionnePourSignalement(null);
   };
 
-  const openCommentModal = (eleve) => {
-    setSelectedStudentForComment(eleve);
-    setShowModal(true);
+  const reinitialiserFormulaireSignalement = () => {
+    setFormulaireSignalement({ statut: 'absent', commentaire: '' });
+    setEleveSelectionnePourSignalement(null);
+    setAfficherModalSignalement(false);
   };
 
-  const saveComment = (commentaire) => {
-    const presenceToUpdate = presences.find(p =>
-      String(p.eleveId) === String(selectedStudentForComment.id) &&
-      p.date === selectedDate &&
-      String(p.classeId) === String(selectedClass)
-    );
+  const statistiques = useMemo(() => {
+    const total = donneesTableau.length;
+    const presents = donneesTableau.filter(p => p.statut === 'present').length;
+    const absents = donneesTableau.filter(p => p.statut === 'absent').length;
+    const retards = donneesTableau.filter(p => p.statut === 'retard').length;
+    const renvoyes = donneesTableau.filter(p => p.statut === 'renvoye').length;
+    const nonMarques = total - (presents + absents + retards + renvoyes);
 
-    if (presenceToUpdate) {
-      setPresences(prevPresences => prevPresences.map(p =>
-        String(p.id) === String(presenceToUpdate.id)
-          ? { ...p, commentaire, dateModification: new Date().toISOString() }
-          : p
-      ));
-      console.log(`Commentaire mis à jour pour ${selectedStudentForComment.prenom} ${selectedStudentForComment.nom}`);
-    } else {
-      // This case should ideally not happen if a record is generated by default.
-      console.warn("No existing presence record to save comment for. Comment not saved.");
-    }
-    setShowModal(false);
-    setSelectedStudentForComment(null);
-  };
-
-  // Stats calculation
-  const stats = useMemo(() => {
-    // These stats reflect only the students currently in tableData (i.e., in selectedClass)
-    const total = tableData.length;
-    const presents = tableData.filter(p => p.statut === 'present').length;
-    const absents = tableData.filter(p => p.statut === 'absent').length;
-    const retards = tableData.filter(p => p.statut === 'retard').length;
-    const renvoyes = tableData.filter(p => p.statut === 'renvoye').length;
-
-    // Justification stats need to look at actual records, not virtual ones
-    const actualPresencesForJustification = presencesDuJourFiltered.filter(p => p.statut !== 'present');
-    const justifies = actualPresencesForJustification.filter(p => p.justifie).length;
-    const nonJustifies = actualPresencesForJustification.filter(p => !p.justifie).length;
-    const nonDefinis = total - (presents + absents + retards + renvoyes); // Students explicitly not marked by any status
-
-    return { total, presents, absents, retards, renvoyes, justifies, nonJustifies, nonDefinis };
-  }, [tableData, presencesDuJourFiltered]);
-
+    return { total, presents, absents, retards, renvoyes, nonMarques };
+  }, [donneesTableau]);
 
   return (
     <div className="space-y-6">
-      {/* Page Header */}
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Gestion des présences</h1>
         <p className="text-gray-600">Marquer les présences de vos élèves</p>
       </div>
 
-      {/* Filters Card */}
       <Card className="p-6 shadow-sm">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
@@ -252,8 +239,8 @@ const GestionPresences = () => {
             </label>
             <select
               id="select-class"
-              value={selectedClass}
-              onChange={(e) => setSelectedClass(e.target.value)}
+              value={classeSelectionnee}
+              onChange={(e) => setClasseSelectionnee(e.target.value)}
               className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-700"
             >
               <option value="">Sélectionner une classe</option>
@@ -272,69 +259,68 @@ const GestionPresences = () => {
             <input
               id="select-date"
               type="date"
-              value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
+              value={dateSelectionnee}
+              onChange={(e) => setDateSelectionnee(e.target.value)}
               className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-700"
             />
           </div>
         </div>
       </Card>
 
-      {/* Conditional Content based on selectedClass */}
-      {selectedClass ? (
+      {classeSelectionnee ? (
         <>
-          {/* Statistiques */}
           <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
             <Card className="p-4 text-center bg-blue-50 border-blue-100 shadow-sm">
               <Users className="w-6 h-6 text-blue-600 mx-auto mb-2" />
-              <p className="text-2xl font-bold text-blue-800">{stats.total}</p>
+              <p className="text-2xl font-bold text-blue-800">{statistiques.total}</p>
               <p className="text-sm text-blue-600">Total Élèves</p>
             </Card>
 
             <Card className="p-4 text-center bg-green-50 border-green-100 shadow-sm">
               <CheckCircle className="w-6 h-6 text-green-600 mx-auto mb-2" />
-              <p className="text-2xl font-bold text-green-800">{stats.presents}</p>
+              <p className="text-2xl font-bold text-green-800">{statistiques.presents}</p>
               <p className="text-sm text-green-600">Présents</p>
             </Card>
 
             <Card className="p-4 text-center bg-red-50 border-red-100 shadow-sm">
               <XCircle className="w-6 h-6 text-red-600 mx-auto mb-2" />
-              <p className="text-2xl font-bold text-red-800">{stats.absents}</p>
+              <p className="text-2xl font-bold text-red-800">{statistiques.absents}</p>
               <p className="text-sm text-red-600">Absents</p>
             </Card>
 
             <Card className="p-4 text-center bg-orange-50 border-orange-100 shadow-sm">
               <Clock className="w-6 h-6 text-orange-600 mx-auto mb-2" />
-              <p className="text-2xl font-bold text-orange-800">{stats.retards}</p>
+              <p className="text-2xl font-bold text-orange-800">{statistiques.retards}</p>
               <p className="text-sm text-orange-600">Retards</p>
             </Card>
 
             <Card className="p-4 text-center bg-purple-50 border-purple-100 shadow-sm">
               <UserX className="w-6 h-6 text-purple-600 mx-auto mb-2" />
-              <p className="text-2xl font-bold text-purple-800">{stats.renvoyes}</p>
+              <p className="text-2xl font-bold text-purple-800">{statistiques.renvoyes}</p>
               <p className="text-sm text-purple-600">Renvoyés</p>
             </Card>
 
             <Card className="p-4 text-center bg-gray-50 border-gray-100 shadow-sm">
               <AlertCircle className="w-6 h-6 text-gray-600 mx-auto mb-2" />
-              <p className="text-xl font-bold text-gray-800">{stats.nonDefinis}</p> {/* Display non-defined clearly */}
+              <p className="text-xl font-bold text-gray-800">{statistiques.nonMarques}</p>
               <p className="text-sm text-gray-600">Non marqués</p>
             </Card>
           </div>
 
-          {/* List of Students with Presence Status */}
           <Card>
             <div className="p-6">
               <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                 <Calendar className="w-5 h-5 mr-2 text-blue-600" />
-                Présences - {getClassName(parseInt(selectedClass))} - {new Date(selectedDate).toLocaleDateString('fr-FR')}
+                Liste des élèves - {getNomClasse(parseInt(classeSelectionnee))} - {new Date(dateSelectionnee).toLocaleDateString('fr-FR')}
               </h2>
 
               <div className="space-y-4">
-                {tableData.length > 0 ? (
-                  tableData.map(presence => {
+                {donneesTableau.length > 0 ? (
+                  donneesTableau.map(presence => {
                     const eleve = eleves.find(e => e.id === presence.eleveId);
-                    const statut = presence?.statut; // Use the status from the prepared presence object
+                    const statut = presence?.statut;
+
+                    const isSignalerDisabled = statut !== 'present';
 
                     return (
                       <div key={presence.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
@@ -353,72 +339,23 @@ const GestionPresences = () => {
                         </div>
 
                         <div className="flex items-center space-x-4">
-                          {/* Statut actuel */}
                           <div className="flex items-center space-x-2 min-w-[100px] justify-end">
-                            {getStatusIcon(statut)}
-                            <span className={`px-2 py-1 text-xs rounded-full ${getStatusColor(statut)}`}>
-                              {getStatusLabel(statut)}
+                            {getIconeStatut(statut)}
+                            <span className={`px-2 py-1 text-xs rounded-full ${getCouleurStatut(statut)}`}>
+                              {getLibelleStatut(statut)}
                             </span>
                           </div>
 
-                          {/* Boutons d'action */}
-                          <div className="flex space-x-1">
-                            <button
-                              onClick={() => handleStatusChange(eleve.id, 'present')}
-                              className={`p-2 rounded-lg transition-colors ${
-                                statut === 'present'
-                                  ? 'bg-green-100 text-green-600'
-                                  : 'bg-gray-100 text-gray-600 hover:bg-green-100 hover:text-green-600'
-                              }`}
-                              title="Marquer Présent"
-                            >
-                              <CheckCircle className="w-4 h-4" />
-                            </button>
-
-                            <button
-                              onClick={() => handleStatusChange(eleve.id, 'absent')}
-                              className={`p-2 rounded-lg transition-colors ${
-                                statut === 'absent'
-                                  ? 'bg-red-100 text-red-600'
-                                  : 'bg-gray-100 text-gray-600 hover:bg-red-100 hover:text-red-600'
-                              }`}
-                              title="Marquer Absent"
-                            >
-                              <XCircle className="w-4 h-4" />
-                            </button>
-
-                            <button
-                              onClick={() => handleStatusChange(eleve.id, 'retard')}
-                              className={`p-2 rounded-lg transition-colors ${
-                                statut === 'retard'
-                                  ? 'bg-orange-100 text-orange-600'
-                                  : 'bg-gray-100 text-gray-600 hover:bg-orange-100 hover:text-orange-600'
-                              }`}
-                              title="Marquer En retard"
-                            >
-                              <Clock className="w-4 h-4" />
-                            </button>
-
-                            <button
-                              onClick={() => handleStatusChange(eleve.id, 'renvoye')}
-                              className={`p-2 rounded-lg transition-colors ${
-                                statut === 'renvoye'
-                                  ? 'bg-purple-100 text-purple-600'
-                                  : 'bg-gray-100 text-gray-600 hover:bg-purple-100 hover:text-purple-600'
-                              }`}
-                              title="Marquer Renvoyé"
-                            >
-                              <UserX className="w-4 h-4" />
-                            </button>
-
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => openCommentModal(eleve)}
-                            >
-                              Commentaire
-                            </Button>
-                          </div>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => ouvrirModalSignalement(eleve)}
+                            icon={Edit}
+                            disabled={isSignalerDisabled}
+                            title={isSignalerDisabled ? `Déjà marqué comme ${getLibelleStatut(statut)}` : "Signaler une absence/un retard"}
+                          >
+                            Signaler
+                          </Button>
                         </div>
                       </div>
                     );
@@ -444,59 +381,66 @@ const GestionPresences = () => {
         </Card>
       )}
 
-      {/* Modal commentaire */}
       <Modal
-        isOpen={showModal}
-        onClose={() => setShowModal(false)}
-        title={`Commentaire - ${selectedStudentForComment?.prenom} ${selectedStudentForComment?.nom}`}
-        size="md"
+        isOpen={afficherModalSignalement}
+        onClose={reinitialiserFormulaireSignalement}
+        title={`Signaler la présence de ${eleveSelectionnePourSignalement?.prenom} ${eleveSelectionnePourSignalement?.nom}`}
+        size="sm"
       >
-        {selectedStudentForComment && (
-          <CommentForm
-            student={selectedStudentForComment}
-            presence={presences.find(p => String(p.eleveId) === String(selectedStudentForComment.id) && p.date === selectedDate && String(p.classeId) === String(selectedClass))}
-            onSave={saveComment}
-            onCancel={() => setShowModal(false)}
-          />
+        {eleveSelectionnePourSignalement && (
+          <form onSubmit={gererSoumissionSignalement} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Statut
+              </label>
+              <select
+                value={formulaireSignalement.statut}
+                onChange={(e) => setFormulaireSignalement({ ...formulaireSignalement, statut: e.target.value })}
+                className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 capitalize"
+                required
+              >
+                <option value="absent">Absent</option>
+                <option value="retard">En retard</option>
+                <option value="renvoye">Renvoyé</option>
+              </select>
+            </div>
+
+            <InputField
+              label="Date"
+              type="date"
+              value={dateSelectionnee}
+              disabled
+              className="bg-gray-100 cursor-not-allowed"
+            />
+            <InputField
+              label="Heure de début"
+              type="time"
+              value={new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+              disabled
+              className="bg-gray-100 cursor-not-allowed"
+            />
+
+            <InputField
+              label="Commentaire"
+              type="textarea"
+              value={formulaireSignalement.commentaire}
+              onChange={(e) => setFormulaireSignalement({ ...formulaireSignalement, commentaire: e.target.value })}
+              rows={3}
+              placeholder="Ajouter un commentaire (ex: motif de l'absence)"
+            />
+
+            <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+              <Button variant="outline" onClick={reinitialiserFormulaireSignalement}>
+                Annuler
+              </Button>
+              <Button type="submit">
+                Enregistrer
+              </Button>
+            </div>
+          </form>
         )}
       </Modal>
     </div>
-  );
-};
-
-// Composant pour le formulaire de commentaire
-const CommentForm = ({ student, presence, onSave, onCancel }) => {
-  const [commentaire, setCommentaire] = useState(presence?.commentaire || '');
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    onSave(commentaire);
-  };
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Commentaire sur la présence
-        </label>
-        <textarea
-          value={commentaire}
-          onChange={(e) => setCommentaire(e.target.value)}
-          rows={4}
-          className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-          placeholder="Ajouter un commentaire..."
-        />
-      </div>
-
-      <div className="flex justify-end space-x-3">
-        <Button variant="outline" onClick={onCancel}>
-          Annuler
-        </Button>
-        <Button type="submit">
-          Enregistrer
-        </Button>
-      </div>
-    </form>
   );
 };
 

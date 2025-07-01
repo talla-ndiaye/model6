@@ -82,6 +82,7 @@ function App() {
             <Route path="admin/enseignants" element={<Enseignants />} />
             <Route path="admin/enseignants/profil/:enseignantId" element={<ProfilEnseignant />} />
             <Route path="admin/classes" element={<Classes />} />
+            <Route path="admin/classes/details/:id" element={<ClasseDetails />} />
             <Route path="admin/matieres" element={<Matieres />} />
             <Route path="admin/emplois-du-temps" element={<EmploisDuTemps />} />
             <Route path="admin/notes-bulletins" element={<NotesBulletins />} />
@@ -90,13 +91,15 @@ function App() {
             <Route path="admin/presences" element={<GestionPresencesAdmin />} />
             <Route path="admin/depenses" element={<GestionDepenses />} />
             <Route path="admin/evaluations" element={<GestionEvaluations />} />
-            <Route path="admin/classes/details/:id" element={<ClasseDetails />} />
+            
 
 
             {/* Routes Enseignant */}
             <Route path="parent" element={<Navigate to="./tableau-de-bord" replace />} />
             <Route path="enseignant/tableau-de-bord" element={<TableauDeBordEnseignant />} />
             <Route path="enseignant/mes-classes" element={<MesClasses />} />
+            <Route path="enseignant/mes-classes/details/:id" element={<ClasseDetails />} />
+            <Route path="enseignant/eleves/profil/:eleveId" element={<ProfilEleve />} />
             <Route path="enseignant/emploi-du-temps" element={<EmploiDuTempsEnseignant />} />
             <Route path="enseignant/gestion-notes" element={<GestionNotes />} />
             <Route path="enseignant/presences" element={<GestionPresences />} />

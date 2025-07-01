@@ -14,10 +14,9 @@ import {
 } from "lucide-react";
 import { useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import Card from "../../components/ui/Card";
-
-
 import Button from "../../components/ui/Button";
+import Card from "../../components/ui/Card";
+import { useAuth } from '../../context/AuthContext';
 import {
   classes,
   eleves,
@@ -31,43 +30,44 @@ import {
 
 const ProfilEleve = () => {
   const { eleveId } = useParams();
-
   const navigate = useNavigate();
-  const profilEleve = useMemo(() => { // Renommé eleveProfile en profilEleve
+  const { user } = useAuth(); // Accès à l'objet utilisateur connecté
+
+  const profilEleve = useMemo(() => {
     return eleves.find((e) => e.id === parseInt(eleveId));
   }, [eleves, eleveId]);
 
-  const paiementsEleve = useMemo(() => { // Renommé studentPayments en paiementsEleve
+  const paiementsEleve = useMemo(() => {
     return profilEleve
       ? paiements.filter((p) => p.eleveId === profilEleve.id)
       : [];
   }, [profilEleve, paiements]);
 
-  const notesEleve = useMemo(() => { // Renommé studentNotes en notesEleve
+  const notesEleve = useMemo(() => {
     return profilEleve
       ? notes.filter((n) => n.eleveId === profilEleve.id)
       : [];
   }, [profilEleve, notes]);
 
-  const presencesEleve = useMemo(() => { // Renommé studentPresences en presencesEleve
+  const presencesEleve = useMemo(() => {
     return profilEleve
-      ? toutesLesPresences.filter( // Utilisation du nouveau nom
+      ? toutesLesPresences.filter(
           (p) => p.eleveId === profilEleve.id && p.statut !== "present"
         )
       : [];
-  }, [profilEleve, toutesLesPresences]); // Dépendance mise à jour
+  }, [profilEleve, toutesLesPresences]);
 
-  const getNomClasse = (classeId) => { // Renommé getClassName en getNomClasse
+  const getNomClasse = (classeId) => {
     const classe = classes.find((c) => c.id === classeId);
     return classe ? classe.nom : "Non assigné";
   };
 
-  const getNomMatiere = (matiereId) => { // Renommé getMatiereName en getNomMatiere
+  const getNomMatiere = (matiereId) => {
     const matiere = matieres.find((m) => m.id === matiereId);
     return matiere ? matiere.nom : "Matière inconnue";
   };
 
-  const getLibelleSexe = (codeSexe) => { // Renommé getSexeLabel en getLibelleSexe
+  const getLibelleSexe = (codeSexe) => {
     return codeSexe === "M"
       ? "Masculin"
       : codeSexe === "F"
@@ -75,12 +75,12 @@ const ProfilEleve = () => {
       : "Non spécifié";
   };
 
-  const getNomEnseignant = (enseignantId) => { // Renommé getEnseignantName en getNomEnseignant
+  const getNomEnseignant = (enseignantId) => {
     const enseignant = enseignants.find((e) => e.id === enseignantId);
     return enseignant ? `${enseignant.prenom} ${enseignant.nom}` : "Non défini";
   };
 
-  const getIconeStatutPresence = (statut) => { // Renommé getPresenceStatusIcon en getIconeStatutPresence
+  const getIconeStatutPresence = (statut) => {
     switch (statut) {
       case "absent":
         return <XCircle className="w-4 h-4 text-red-500" />;
@@ -93,7 +93,7 @@ const ProfilEleve = () => {
     }
   };
 
-  const getLibelleStatutPresence = (statut) => { // Renommé getPresenceStatusLabel en getLibelleStatutPresence
+  const getLibelleStatutPresence = (statut) => {
     switch (statut) {
       case "absent":
         return "Absent";
@@ -106,13 +106,13 @@ const ProfilEleve = () => {
     }
   };
 
-  const getInfoParent = (parentId) => { // Renommé getParentInfo en getInfoParent
+  const getInfoParent = (parentId) => {
     return utilisateurs.find(
       (user) => user.id === parentId && user.role === "parent"
     );
   };
 
-  const LigneDetail = ({ icon: Icon, label, value }) => ( // Renommé DetailRow en LigneDetail
+  const LigneDetail = ({ icon: Icon, label, value }) => (
     <div className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg border border-gray-100">
       {Icon && <Icon className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />}
       <div>
@@ -124,7 +124,7 @@ const ProfilEleve = () => {
     </div>
   );
 
-  if (!profilEleve) { // Utilisation du nouveau nom
+  if (!profilEleve) {
     return (
       <div className="bg-gradient-to-br from-blue-50 to-indigo-50 min-h-screen py-6">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
@@ -172,38 +172,37 @@ const ProfilEleve = () => {
               <h3 className="text-xl font-bold text-gray-900">
                 {profilEleve.prenom} {profilEleve.nom}
               </h3>
-              <p className="text-sm text-gray-600">
-                Matriclue: {profilEleve.matricule}
+              <p className="text-md text-gray-600">
+                Matricule: {profilEleve.matricule}
               </p>
-              
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <LigneDetail // Utilisation du nouveau nom
+            <LigneDetail
               icon={CalendarDays}
               label="Date de naissance"
               value={new Date(profilEleve.dateNaissance).toLocaleDateString(
                 "fr-FR"
               )}
             />
-            <LigneDetail // Utilisation du nouveau nom
+            <LigneDetail
               icon={BookOpen}
               label="Classe"
               value={getNomClasse(profilEleve.classeId)}
             />
-            <LigneDetail // Utilisation du nouveau nom
+            <LigneDetail
               icon={UserIcon}
               label="Sexe"
               value={getLibelleSexe(profilEleve.sexe)}
             />
-            <LigneDetail icon={Mail} label="Email" value={profilEleve.email} /> {/* Utilisation du nouveau nom */}
-            <LigneDetail // Utilisation du nouveau nom
+            <LigneDetail icon={Mail} label="Email" value={profilEleve.email} />
+            <LigneDetail
               icon={Phone}
               label="Téléphone"
               value={profilEleve.telephone || "N/A"}
             />
-            <LigneDetail // Utilisation du nouveau nom
+            <LigneDetail
               icon={Home}
               label="Adresse"
               value={profilEleve.adresse || "N/A"}
@@ -220,23 +219,23 @@ const ProfilEleve = () => {
           {profilEleve.parentIds && profilEleve.parentIds.length > 0 ? (
             <div className="space-y-4">
               {profilEleve.parentIds.map((parentId) => {
-                const parent = getInfoParent(parentId); // Utilisation du nouveau nom
+                const parent = getInfoParent(parentId);
                 return parent ? (
                   <div
                     key={parentId}
                     className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-3 bg-gray-50 rounded-lg border border-gray-100"
                   >
-                    <LigneDetail // Utilisation du nouveau nom
+                    <LigneDetail
                       icon={UserIcon}
                       label="Nom Complet"
                       value={`${parent.prenom} ${parent.nom}`}
                     />
-                    <LigneDetail // Utilisation du nouveau nom
+                    <LigneDetail
                       icon={Phone}
                       label="Téléphone"
                       value={parent.telephone || "N/A"}
                     />
-                    <LigneDetail // Utilisation du nouveau nom
+                    <LigneDetail
                       icon={Mail}
                       label="Email"
                       value={parent.email || "N/A"}
@@ -252,53 +251,55 @@ const ProfilEleve = () => {
           )}
         </Card>
 
-        {/* Infos Paiements */}
-        <Card className="p-6 shadow-xl border border-gray-200 rounded-2xl bg-white">
-          <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
-            <CreditCard className="w-6 h-6 mr-2 text-purple-600" /> Historique
-            des Paiements
-          </h2>
-          {paiementsEleve.length > 0 ? ( // Utilisation du nouveau nom
-            <div className="space-y-3">
-              {paiementsEleve // Utilisation du nouveau nom
-                .sort((a, b) => new Date(b.date) - new Date(a.date))
-                .map((p) => (
-                  <div
-                    key={p.id}
-                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100 text-sm"
-                  >
-                    <div>
-                      <p className="font-semibold text-gray-800">
-                        {p.type} -{" "}
-                        {p.montant.toLocaleString("fr-FR", {
-                          style: "currency",
-                          currency: "XOF",
-                        })}
-                      </p>
-                      <p className="text-xs text-gray-600">
-                        Date: {new Date(p.date).toLocaleDateString("fr-FR")}
-                      </p>
-                    </div>
-                    <span
-                      className={`px-2 py-0.5 text-xs rounded-full ${
-                        p.statut === "Payé"
-                          ? "bg-green-100 text-green-800"
-                          : p.statut === "En attente"
-                          ? "bg-yellow-100 text-yellow-800"
-                          : "bg-red-100 text-red-800"
-                      }`}
+        {/* Infos Paiements - Conditionnellement affiché pour les admins */}
+        {user?.role === 'admin' && (
+          <Card className="p-6 shadow-xl border border-gray-200 rounded-2xl bg-white">
+            <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
+              <CreditCard className="w-6 h-6 mr-2 text-purple-600" /> Historique
+              des Paiements
+            </h2>
+            {paiementsEleve.length > 0 ? (
+              <div className="space-y-3">
+                {paiementsEleve
+                  .sort((a, b) => new Date(b.date) - new Date(a.date))
+                  .map((p) => (
+                    <div
+                      key={p.id}
+                      className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100 text-sm"
                     >
-                      {p.statut}
-                    </span>
-                  </div>
-                ))}
-            </div>
-          ) : (
-            <p className="text-gray-500 text-center p-4">
-              Aucun historique de paiement disponible pour cet élève.
-            </p>
-          )}
-        </Card>
+                      <div>
+                        <p className="font-semibold text-gray-800">
+                          {p.type} -{" "}
+                          {p.montant.toLocaleString("fr-FR", {
+                            style: "currency",
+                            currency: "XOF",
+                          })}
+                        </p>
+                        <p className="text-xs text-gray-600">
+                          Date: {new Date(p.date).toLocaleDateString("fr-FR")}
+                        </p>
+                      </div>
+                      <span
+                        className={`px-2 py-0.5 text-xs rounded-full ${
+                          p.statut === "Payé"
+                            ? "bg-green-100 text-green-800"
+                            : p.statut === "En attente"
+                            ? "bg-yellow-100 text-yellow-800"
+                            : "bg-red-100 text-red-800"
+                        }`}
+                      >
+                        {p.statut}
+                      </span>
+                    </div>
+                  ))}
+              </div>
+            ) : (
+              <p className="text-gray-500 text-center p-4">
+                Aucun historique de paiement disponible pour cet élève.
+              </p>
+            )}
+          </Card>
+        )}
 
         {/* Infos Notes */}
         <Card className="p-6 shadow-xl border border-gray-200 rounded-2xl bg-white">
@@ -306,9 +307,9 @@ const ProfilEleve = () => {
             <BookOpen className="w-6 h-6 mr-2 text-orange-600" /> Historique des
             Notes
           </h2>
-          {notesEleve.length > 0 ? ( // Utilisation du nouveau nom
+          {notesEleve.length > 0 ? (
             <div className="space-y-3">
-              {notesEleve // Utilisation du nouveau nom
+              {notesEleve
                 .sort((a, b) => new Date(b.date) - new Date(a.date))
                 .map((note) => (
                   <div
@@ -317,7 +318,7 @@ const ProfilEleve = () => {
                   >
                     <div>
                       <p className="font-semibold text-gray-800">
-                        {getNomMatiere(note.matiereId)} - {note.type} {/* Utilisation du nouveau nom */}
+                        {getNomMatiere(note.matiereId)} - {note.type}{" "}
                       </p>
                       <p className="text-xs text-gray-600">
                         Date: {new Date(note.date).toLocaleDateString("fr-FR")}
@@ -345,9 +346,9 @@ const ProfilEleve = () => {
           <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
             <UserX className="w-6 h-6 mr-2 text-red-600" /> Absences & Retards
           </h2>
-          {presencesEleve.length > 0 ? ( // Utilisation du nouveau nom
+          {presencesEleve.length > 0 ? (
             <div className="space-y-3">
-              {presencesEleve // Utilisation du nouveau nom
+              {presencesEleve
                 .sort((a, b) => new Date(b.date) - new Date(a.date))
                 .map((p) => (
                   <div
@@ -355,10 +356,10 @@ const ProfilEleve = () => {
                     className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100 text-sm"
                   >
                     <div className="flex items-center space-x-2">
-                      {getIconeStatutPresence(p.statut)} {/* Utilisation du nouveau nom */}
+                      {getIconeStatutPresence(p.statut)}
                       <div>
                         <p className="font-semibold text-gray-800">
-                          {getLibelleStatutPresence(p.statut)} -{" "} {/* Utilisation du nouveau nom */}
+                          {getLibelleStatutPresence(p.statut)} -{" "}
                           {new Date(p.date).toLocaleDateString("fr-FR")}
                         </p>
                         <p className="text-xs text-gray-600">
