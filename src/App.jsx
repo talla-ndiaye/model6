@@ -113,8 +113,8 @@ function App() {
             <Route path="eleve/paiements" element={<MesPaiementsEleve />} />
 
             {/* Routes Parent */}
-            <Route path="parent" element={<Navigate to="./tableau-de-bord" replace />} />
-            <Route path="parent/tableau-de-bord" element={<TableauDeBordEnseignant />} />
+            <Route path="parent" element={<Navigate to="./emploi-du-temps" replace />} />
+            <Route path="parent/tableau-de-bord" element={<Navigate to="/parent/mes-enfants" replace />} />
             <Route path="parent/mes-enfants" element={<MesEnfants />} />
             <Route path="parent/paiements" element={<HistoriquePaiementsParent />} />
             <Route path="parent/presences" element={<PresencesEnfants />} />
