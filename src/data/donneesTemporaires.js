@@ -36,7 +36,7 @@ export const utilisateurs = [
     role: 'eleve',
     nom: 'Ndiaye',
     prenom: 'Talla', //
-    telephone: '784567890',
+    telephone: '784448928',
     classeId: 1 // ID de la classe
   },
   {
@@ -59,7 +59,7 @@ export const eleves = [
     sexe: 'M', // Ajout du sexe pour la répartition G/F
     classeId: 1, // ID de la classe
     parentIds: [3], // ID du parent
-    telephone: '784567890',
+    telephone: '784448928',
     email: 'eleve@ecole.sn',
     adresse: 'Rue 1 x 2, Sicap Liberté 6, Dakar',
     matricule:"AZDZXED"
