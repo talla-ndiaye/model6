@@ -1,22 +1,26 @@
 from flask import Flask
 from flask_cors import CORS
 from database import db
+from datetime import timedelta  
 
 from routes.auth_routes import auth_bp
 from flask_jwt_extended import JWTManager
 from routes.classe_routes import classe_bp
-from routes.eleve_routes import eleve_bp
 from routes.matiere_routes import matiere_bp
 from routes.enseignant_routes import enseignant_bp
-from routes.emploi_routes import emploi_bp
 from routes.eleve_routes import eleve_bp
-
-
+from routes.prarent_routes import parent_bp
+from routes.emploi_du_temps_routes import emploi_bp
+from routes.note_routes import note_bp
+from routes.paiement_route import paiement_bp
+from routes.statistiques_routes import statistiques_bp
+from routes.Presence_route import presence_bp
 app = Flask(__name__)
 CORS(app)
 
 #Definition ma cle de sécurit pour hasé les mot de passe
 app.config['JWT_SECRET_KEY'] = 'ta_clef_secrete_pour_jwt'  # remplace par une clé secrète forte
+app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=12)
 jwt = JWTManager(app)
 
 
@@ -29,8 +33,15 @@ app.register_blueprint(auth_bp, url_prefix='/api/auth')
 app.register_blueprint(classe_bp, url_prefix='/api')
 app.register_blueprint(matiere_bp, url_prefix='/api')
 app.register_blueprint(enseignant_bp, url_prefix='/api')
-app.register_blueprint(emploi_bp,url_prefix='/api')
-app.register_blueprint(eleve_bp, url_prefix="/api")
+app.register_blueprint(eleve_bp, url_prefix='/api')
+app.register_blueprint(parent_bp, url_prefix='/api')
+app.register_blueprint(emploi_bp, url_prefix='/api')
+app.register_blueprint(note_bp, url_prefix="/api")
+app.register_blueprint(paiement_bp, url_prefix="/api")
+app.register_blueprint(statistiques_bp, url_prefix="/api")
+app.register_blueprint(presence_bp, url_prefix="/api")
+
+
 
 db.init_app(app)
 

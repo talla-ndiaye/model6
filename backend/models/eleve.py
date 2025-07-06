@@ -7,15 +7,18 @@ class Eleve(db.Model):
     nom = db.Column(db.String(100), nullable=False)
     prenom = db.Column(db.String(100), nullable=False)
     matricule = db.Column(db.String(50), unique=True, nullable=False)
-    date_naissance = db.Column(db.String(20), nullable=False)
-    adresse = db.Column(db.String(200), nullable=False)
+    sexe = db.Column(db.String(1), nullable=False)  # 'M' ou 'F'
+    date_naissance = db.Column(db.Date, nullable=True)
+    adresse = db.Column(db.String(255), nullable=True)
 
-    parent_nom = db.Column(db.String(100), nullable=False)
-    parent_prenom = db.Column(db.String(100), nullable=False)
-    parent_telephone = db.Column(db.String(20), nullable=False)
+    utilisateur_id = db.Column(db.Integer, db.ForeignKey('utilisateurs.id'), nullable=False)
+    utilisateur = db.relationship('Utilisateur', foreign_keys=[utilisateur_id], backref=db.backref('eleve', uselist=False))
 
     classe_id = db.Column(db.Integer, db.ForeignKey('classes.id'), nullable=False)
     classe = db.relationship('Classe', backref='eleves')
+
+    parent_id = db.Column(db.Integer, db.ForeignKey('utilisateurs.id'), nullable=False)
+    parent = db.relationship('Utilisateur', foreign_keys=[parent_id], backref='enfants')
 
     def to_dict(self):
         return {
@@ -23,11 +26,15 @@ class Eleve(db.Model):
             "nom": self.nom,
             "prenom": self.prenom,
             "matricule": self.matricule,
-            "date_naissance": self.date_naissance,
+            "sexe": self.sexe,
+            "date_naissance": self.date_naissance.isoformat() if self.date_naissance else None,
             "adresse": self.adresse,
-            "parent_nom": self.parent_nom,
-            "parent_prenom": self.parent_prenom,
-            "parent_telephone": self.parent_telephone,
-            "classe_id": self.classe_id,
-            "classe": self.classe.nom if self.classe else None
-    }
+            "classe": self.classe.to_dict() if self.classe else None,
+            "parent": {
+                "id": self.parent.id,
+                "nom": self.parent.nom,
+                "prenom": self.parent.prenom,
+                "email": self.parent.email,
+                "telephone": self.parent.telephone,
+            } if self.parent else None
+        }
