@@ -1,10 +1,13 @@
 from flask import Flask
 from flask_cors import CORS
-from database import db
-from datetime import timedelta  
+from flask_jwt_extended import JWTManager
+from datetime import timedelta
+from flask_migrate import Migrate
+from dotenv import load_dotenv
+
+from database import db, init_app  # <-- init_app ajouté
 
 from routes.auth_routes import auth_bp
-from flask_jwt_extended import JWTManager
 from routes.classe_routes import classe_bp
 from routes.matiere_routes import matiere_bp
 from routes.enseignant_routes import enseignant_bp
@@ -15,20 +18,22 @@ from routes.note_routes import note_bp
 from routes.paiement_route import paiement_bp
 from routes.statistiques_routes import statistiques_bp
 from routes.Presence_route import presence_bp
+from routes.depense_routes import depense_bp
+
+load_dotenv()
+
 app = Flask(__name__)
 CORS(app)
 
-#Definition ma cle de sécurit pour hasé les mot de passe
-app.config['JWT_SECRET_KEY'] = 'ta_clef_secrete_pour_jwt'  # remplace par une clé secrète forte
+init_app(app)  # Initialise MySQL depuis .env
+migrate = Migrate(app, db)  # 💡 Flask-Migrate activé
+
+
+# Token JWT
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=12)
 jwt = JWTManager(app)
 
-
-# Configurer la base SQLite (fichier local)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///gestion_ecole.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
-# Importation des routes
+# Routes
 app.register_blueprint(auth_bp, url_prefix='/api/auth')
 app.register_blueprint(classe_bp, url_prefix='/api')
 app.register_blueprint(matiere_bp, url_prefix='/api')
@@ -40,16 +45,13 @@ app.register_blueprint(note_bp, url_prefix="/api")
 app.register_blueprint(paiement_bp, url_prefix="/api")
 app.register_blueprint(statistiques_bp, url_prefix="/api")
 app.register_blueprint(presence_bp, url_prefix="/api")
-
-
-
-db.init_app(app)
+app.register_blueprint(depense_bp, url_prefix="/api")
 
 @app.route('/')
 def hello():
-    return "Bonjour, Flask est prêt !"
+    return "Bonjour, Flask avec MySQL est prêt !"
 
 if __name__ == '__main__':
     with app.app_context():
-        db.create_all()  # Crée les tables dans la base si elles n'existent pas
+        db.create_all()
     app.run(debug=True)
